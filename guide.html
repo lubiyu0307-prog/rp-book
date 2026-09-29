@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-title" content="裝幀室">
+<meta name="application-name" content="裝幀室">
+<meta name="theme-color" content="#2f4858">
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -324,8 +330,8 @@ const SCENES = [
     steps: [[0, 'check', '#r4-b'], [500, 'cur', '#all'], [1300, 'tap', '#all'], [1500, 'add', '#dlg', 'show'], [1500, 'check', '#a1-b,#a2-b,#a3-b,#a4-b,#a5-b'],
       [2300, 'cur', '#none2'], [3000, 'tap', '#none2'], [3100, 'uncheck', '#a1-b,#a2-b,#a3-b,#a4-b,#a5-b'], [3100, 'text', '#none2', '全選'], [3700, 'cur', '#a3-b'], [4400, 'tap', '#a3-b'], [4500, 'check', '#a3-b'],
       [5100, 'cur', '#ok'], [5800, 'tap', '#ok'], [6000, 'rm', '#dlg', 'show'], [6000, 'text', '#all', '已選取 1 項產品']] },
-  { group: 0, kicker: 'Google 匯出', title: '格式改成 JSON', shot: 'shots/format.png',
-    text: '旁邊那顆<b>「HTML 和另外 3 種格式」</b>點開，跳出「「我的活動」的匯出選項」。第一列<b>「活動記錄」</b>從 HTML 改成<b>JSON</b>，其他不用動，按「確定」。按鈕會變成「JSON 和另外 3 種格式」。',
+  { group: 0, kicker: 'Google 匯出', title: '格式：JSON 或 HTML 都可以', shot: 'shots/format.png',
+    text: '裝幀室兩種都吃，<b>這一步可以跳過</b>，留著 HTML 直接匯出也行。想選 JSON 的話：旁邊那顆<b>「HTML 和另外 3 種格式」</b>點開，第一列<b>「活動記錄」</b>從 HTML 改成<b>JSON</b>，其他不用動，按「確定」。',
     html: () => browser('takeout.google.com', `${row('r4', '我的活動', '您的活動資料記錄，以及圖片和音訊附件')}
       <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill" id="fmt">HTML 和另外 3 種格式</span><span class="pill">已選取 1 項產品</span></div>
       <div class="dlg" id="dlg"><p class="s-title">「我的活動」的匯出選項</p><p class="s-sub">選擇封存檔案的格式</p>

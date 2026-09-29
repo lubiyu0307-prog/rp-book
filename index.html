@@ -3,17 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-title" content="裝幀室">
+<meta name="application-name" content="裝幀室">
+<meta name="theme-color" content="#2f4858">
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
 <title>對話裝幀室</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Serif+TC:wght@400;600&family=Noto+Sans+TC:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Iansui&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cactus+Classical+Serif&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chocolate+Classical+Sans&display=swap">
 <style>
 :root {
   --paper: #eef0f1;
@@ -186,11 +185,11 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
     <form class="order" id="order" autocomplete="off">
       <section class="step">
         <h2><span class="n">STEP 1</span>放入對話紀錄</h2>
-        <p class="hint">到 takeout.google.com，只勾「我的活動」，格式選 JSON。解壓後在「我的活動」裡找到 <b>Gemini Apps</b> 資料夾，整個拖進來就好。<br>
+        <p class="hint">到 takeout.google.com，只勾「我的活動」，格式選 JSON（已經匯成 HTML 的也可以，直接放進來）。解壓後在「我的活動」裡找到 <b>Gemini Apps</b> 資料夾，整個拖進來就好。<br>
           <b>不要勾「Gemini」那一項</b>，那是 Gem 的名稱與指令，是創作者的後台，這裡用不到也不讀。</p>
-        <div class="drop" id="drop" tabindex="0" role="button" aria-label="選擇或拖入我的活動.json">
-          把 <b>Gemini Apps 資料夾</b>或裡面的 <b>json</b> 拖進來，或點這裡選檔案
-          <input type="file" id="file" accept=".json,application/json" hidden>
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="選擇或拖入我的活動.json 或 MyActivity.html">
+          把 <b>Gemini Apps 資料夾</b>或裡面的 <b>json</b>／<b>html</b> 拖進來，或點這裡選檔案
+          <input type="file" id="file" accept=".json,.html,.htm,application/json,text/html" hidden>
           <input type="file" id="folder" webkitdirectory hidden>
         </div>
         <button type="button" class="btn ghost" id="pickfolder" style="justify-self:start">選整個資料夾</button>
@@ -346,6 +345,61 @@ const SAMPLE = (() => {
       `<p>他看著那杯可可，很久沒有說話。</p><p>最後他雙手捧起杯子，像捧著什麼容易碎的東西。</p><p>「謝謝。」他說。「下次換我請。」</p><p>「下次」這兩個字，他說得很輕，卻很確定。</p>` + st(4, '黑色大衣掛在椅背，袖子捲起。', '距離沒有變，但他不再把筆記本收起來。', '下次。我說了下次。她沒有拒絕。')),
   ];
 })();
+
+// ───────── Takeout 匯 HTML 的也吃（2026-09-29）─────────
+// Google 的 MyActivity.html 一則活動一個 outer-cell；正文格裡是「Prompted 提問<br>時間戳<br>回覆 HTML」，
+// Gem 那行（「X was used in this chat」）在正文格或旁邊的說明格。這裡把它轉回跟 JSON 一樣的形狀
+// （title／time／subtitles／safeHtmlItem），後面全部共用。網頁版與指令版這段要一模一樣
+const MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+const unent = s => s.replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
+  .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+const stripTags = s => s.replace(/<[^>]+>/g, '');
+// 時間戳那一行：英文「Sep 28, 2026, 10:12:33 PM GMT+8」、中文「2026年9月28日 下午10:12:33 [GMT+8]」；沒寫時區就當台灣
+function takeoutTime(line) {
+  const s = stripTags(line).replace(/\s+/g, ' ').trim();
+  const TZ = /\s*(?:\[?(?:GMT|UTC)\s*([+-]\d{1,2})(?::?(\d{2}))?\]?)?$/.source;
+  let y, mo, d, h, mi, sec, oh, om;
+  let m = s.match(new RegExp(/^([A-Z][a-z]{2})[a-z]*\.? (\d{1,2}), (\d{4}),? (\d{1,2}):(\d{2})(?::(\d{2}))?\s*([AP]M)?/.source + TZ, 'i'));
+  if (m) {
+    mo = MONTHS[m[1].toLowerCase()]; if (mo === undefined) return null;
+    d = +m[2]; y = +m[3]; h = +m[4]; mi = +m[5]; sec = +(m[6] || 0);
+    if (m[7]) { const pm = m[7].toUpperCase() === 'PM'; if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; }
+    oh = m[8]; om = m[9];
+  } else {
+    m = s.match(new RegExp(/^(\d{4})年(\d{1,2})月(\d{1,2})日\s*(凌晨|早上|上午|中午|下午|晚上)?\s*(\d{1,2}):(\d{2})(?::(\d{2}))?/.source + TZ));
+    if (!m) return null;
+    y = +m[1]; mo = +m[2] - 1; d = +m[3]; h = +m[5]; mi = +m[6]; sec = +(m[7] || 0);
+    if (m[4] && /下午|晚上/.test(m[4]) && h < 12) h += 12;
+    if (m[4] && /凌晨|早上|上午/.test(m[4]) && h === 12) h = 0;
+    oh = m[8]; om = m[9];
+  }
+  const off = oh === undefined ? 8 * 60 : +oh * 60 + (om ? (oh.startsWith('-') ? -1 : 1) * +om : 0);
+  return new Date(Date.UTC(y, mo, d, h, mi, sec) - off * 60e3).toISOString();
+}
+function htmlToActivity(html) {
+  const out = [];
+  const GEMLINK = /<a[^>]*href="(https:\/\/gemini\.google\.com\/(?:gems|notebooks)[^"]*)"[^>]*>([^<]*)<\/a>/;
+  for (const cell of html.split(/<div class="outer-cell[^"]*">/).slice(1)) {
+    const at = cell.search(/<div class="content-cell[^"]*mdl-typography--body-1"[^>]*>/);
+    if (at < 0) continue;
+    let body = cell.slice(at).replace(/^<div[^>]*>/, '');
+    const end = body.search(/<div class="content-cell[^"]*mdl-typography--(?:text-right|caption)"/);
+    if (end >= 0) body = body.slice(0, end);
+    body = body.replace(/(<\/div>\s*)+$/, '');
+    const lines = body.split(/<br\s*\/?>/i);
+    const ti = lines.findIndex(l => takeoutTime(l));
+    if (ti < 0) continue;
+    const title = unent(stripTags(lines[0])).trim();
+    const rest = lines.slice(ti + 1).join('<br>').replace(new RegExp(GEMLINK.source + '\\s*(<br>)?', 'g'), '').trim();
+    const x = { header: 'Gemini Apps', title, time: takeoutTime(lines[ti]), subtitles: [], details: [], safeHtmlItem: rest ? [{ html: rest }] : [] };
+    const gem = cell.match(GEMLINK) || cell.match(/()([^<>\n]+? was used in this[^<]*)/);
+    if (gem) x.subtitles.push({ name: unent(gem[2]).trim(), url: gem[1] || 'https://gemini.google.com/gems/view' });
+    const app = cell.match(/href="(https:\/\/gemini\.google\.com\/app\/[^"]*)"/);
+    if (app) x.details.push({ url: unent(app[1]) });
+    out.push(x);
+  }
+  return out;
+}
 
 // ───────── 讀檔與挑對話 ─────────
 const SKIP_TITLE = /^(Created|Selected|Branched|Gave|Used|Viewed|Searched|Deleted|已建立|已選取|已刪除)\b/;
@@ -947,9 +1001,9 @@ ${manifest}
 }
 
 // ───────── 事件 ─────────
-// 拖進來的是資料夾：往下找 json，挑名字像「我的活動」的那個（沒有就挑最大的）
+// 拖進來的是資料夾：往下找 json（沒有就找 html），挑名字像「我的活動」的那個（沒有就挑最大的）
 async function filesFromEntry(entry, out = []) {
-  if (entry.isFile) { if (/\.json$/i.test(entry.name)) out.push(await new Promise((ok, no) => entry.file(ok, no))); return out; }
+  if (entry.isFile) { if (/\.(json|html?)$/i.test(entry.name)) out.push(await new Promise((ok, no) => entry.file(ok, no))); return out; }
   if (entry.isDirectory) {
     const reader = entry.createReader();
     for (;;) { const batch = await new Promise((ok, no) => reader.readEntries(ok, no)); if (!batch.length) break; for (const e of batch) await filesFromEntry(e, out); }
@@ -957,22 +1011,23 @@ async function filesFromEntry(entry, out = []) {
   return out;
 }
 function pickJson(files) {
-  const json = files.filter(f => /\.json$/i.test(f.name));
-  return json.find(f => /活動|activity/i.test(f.name)) || json.sort((a, b) => b.size - a.size)[0];
+  const pick = list => list.find(f => /活動|activity/i.test(f.name)) || list.sort((a, b) => b.size - a.size)[0];
+  return pick(files.filter(f => /\.json$/i.test(f.name))) || pick(files.filter(f => /\.html?$/i.test(f.name)));
 }
-function noJson() { const msg = $('loadmsg'); msg.className = 'msg err'; msg.textContent = '這個資料夾裡沒有 json。要的是 Takeout 格式選 JSON 匯出的「Gemini Apps」資料夾。'; }
+function noJson() { const msg = $('loadmsg'); msg.className = 'msg err'; msg.textContent = '這個資料夾裡沒有 json 也沒有 html。要的是 Takeout 匯出的「Gemini Apps」資料夾。'; }
 async function readActivity(file) {
   const msg = $('loadmsg'); msg.className = 'msg'; msg.textContent = `讀取 ${file.name}⋯`;
   try {
-    const data = JSON.parse(await file.text());
-    if (!Array.isArray(data)) throw new Error('shape');
+    const text = await file.text();
+    const data = /^\s*</.test(text) ? htmlToActivity(text) : JSON.parse(text);
+    if (!Array.isArray(data) || !data.length) throw new Error('shape');
     const gems = listGems(data);
-    if (!gems.length) { msg.className = 'msg err'; msg.textContent = '這份檔案裡沒有找到用 Gem 聊的對話。確認是「我的活動 › Gemini Apps」裡的 JSON。'; return; }
+    if (!gems.length) { msg.className = 'msg err'; msg.textContent = '這份檔案裡沒有找到用 Gem 聊的對話。確認是「我的活動 › Gemini Apps」裡的 JSON 或 HTML。'; return; }
     S.activity = data; S.sample = false; S.cover = null;
     msg.textContent = `讀好了：${data.length} 則活動、${gems.length} 位角色。`;
     loadGems();
   } catch {
-    msg.className = 'msg err'; msg.textContent = '讀不懂這個檔案。要放的是 Takeout 匯出、格式選 JSON 的「我的活動.json」。';
+    msg.className = 'msg err'; msg.textContent = '讀不懂這個檔案。要放的是 Takeout 匯出的「我的活動.json」或「MyActivity.html」。';
   }
 }
 const drop = $('drop');
@@ -1109,6 +1164,5 @@ loadGems();
 document.fonts?.ready.then(() => renderCover());
 })();
 </script>
-
 </body>
 </html>
