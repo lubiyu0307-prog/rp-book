@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>對話裝幀室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Serif+TC:wght@400;600&family=Noto+Sans+TC:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Iansui&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cactus+Classical+Serif&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chocolate+Classical+Sans&display=swap">
+<style>
+:root {
+  --paper: #eef0f1;
+  --panel: #f8f9f9;
+  --ink: #1d2327;
+  --muted: #66707a;
+  --line: #d5dadd;
+  --cloth: #2f4858;
+  --cloth-ink: #eef2f3;
+  --gilt: #a9853a;
+  --field: #ffffff;
+  --shadow: 0 1px 2px rgba(20,30,40,.06), 0 8px 24px rgba(20,30,40,.08);
+  --display: "LXGW WenKai TC", "Kaiti TC", "BiauKai", serif;
+  --read: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --ui: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14181b; --panel: #1b2024; --ink: #e4e7e9; --muted: #98a2ab; --line: #2c3338;
+    --cloth: #3f6377; --cloth-ink: #eef2f3; --gilt: #d0ad63; --field: #101316;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14181b; --panel: #1b2024; --ink: #e4e7e9; --muted: #98a2ab; --line: #2c3338;
+  --cloth: #3f6377; --cloth-ink: #eef2f3; --gilt: #d0ad63; --field: #101316;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  color-scheme: dark;
+}
+.hero { margin: 0 0 20px; max-width: 620px; }
+.hero img { display: block; width: 100%; height: auto; border-radius: 6px; box-shadow: var(--shadow); }
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--ui); font-size: 15px; line-height: 1.6;
+  padding: 0 16px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; }
+header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; margin-bottom: 22px; }
+header.top h1 { font-family: var(--display); font-weight: 700; font-size: 2rem; margin: 0; letter-spacing: .08em; }
+header.top p { margin: 0; color: var(--muted); font-size: .92rem; }
+.grid { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* 左邊：裝訂工單 */
+.order { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 6px 18px 18px; }
+.step { padding: 14px 0; border-bottom: 1px dashed var(--line); display: grid; gap: 8px; }
+.step:last-child { border-bottom: 0; }
+.step h2 { font-family: var(--display); font-size: 1.12rem; margin: 0; display: flex; gap: 10px; align-items: baseline; }
+.step h2 .n { font-family: var(--ui); font-size: .72rem; letter-spacing: .12em; color: var(--gilt); font-weight: 500; }
+.hint { color: var(--muted); font-size: .84rem; margin: 0; }
+.drop { border: 1.5px dashed var(--line); border-radius: 8px; padding: 16px; text-align: center; cursor: pointer;
+  background: var(--field); color: var(--muted); font-size: .9rem; transition: border-color .15s; }
+.drop:hover, .drop.over { border-color: var(--cloth); color: var(--ink); }
+.drop:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--gilt); outline-offset: 2px; }
+.drop b { color: var(--ink); font-weight: 500; }
+label { font-size: .82rem; color: var(--muted); display: grid; gap: 4px; }
+input[type=color] { width: 100%; height: 34px; padding: 2px; border: 1px solid var(--line); border-radius: 6px; background: var(--field); }
+input[type=range] { width: 100%; accent-color: var(--cloth); }
+input[type=text], select, textarea { font: inherit; color: var(--ink); background: var(--field); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px 10px; width: 100%; }
+textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+.sw { border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px 4px 4px; display: flex; gap: 6px; align-items: center;
+  background: var(--field); cursor: pointer; font-size: .82rem; color: var(--ink); font-family: var(--ui); }
+.sw i { width: 18px; height: 24px; border-radius: 2px; display: block; }
+.sw[aria-pressed="true"] { border-color: var(--gilt); box-shadow: 0 0 0 1px var(--gilt); }
+.chapters { display: grid; gap: 6px; max-height: 260px; overflow: auto; padding-right: 4px; }
+.chapters label { grid-template-columns: 4.2em 1fr; align-items: center; }
+.chapters small { color: var(--muted); font-size: .72rem; display: block; line-height: 1.2; }
+.stats { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; margin: 0; }
+.stats b { color: var(--ink); font-weight: 500; }
+.btn { font: inherit; border: 0; border-radius: 7px; padding: 10px 16px; cursor: pointer; background: var(--cloth); color: var(--cloth-ink);
+  font-weight: 500; letter-spacing: .04em; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); padding: 7px 12px; font-size: .85rem; }
+.btn:disabled { opacity: .5; cursor: default; }
+.msg { font-size: .84rem; margin: 0; min-height: 1.3em; }
+.msg.err { color: #b3452f; }
+.promptbox { font-size: .8rem; font-family: ui-monospace, Menlo, monospace; white-space: pre-wrap; background: var(--field);
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; max-height: 140px; overflow: auto; margin: 0; }
+.tag { display: inline-block; font-size: .7rem; letter-spacing: .1em; padding: 1px 7px; border-radius: 999px; background: var(--cloth); color: var(--cloth-ink); }
+.tag.sample { background: var(--gilt); }
+
+/* 右邊：書 */
+.desk { display: grid; gap: 16px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+@media (max-width: 860px) { .desk { position: static; } }
+.deskbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.deskbar .where { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.book { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 560px) { .book { grid-template-columns: minmax(0, 1fr); } .cover { max-width: 220px; margin: 0 auto; } }
+.cover { aspect-ratio: 2 / 3; width: 100%; max-width: 100%; border-radius: 3px 8px 8px 3px; overflow: hidden; box-shadow: var(--shadow);
+  position: relative; background: var(--cloth); }
+.cover canvas { width: 100%; height: 100%; display: block; }
+.cover::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 9px; background: linear-gradient(90deg, rgba(0,0,0,.22), rgba(0,0,0,0)); }
+.leaf { background: var(--bk-paper); color: var(--bk-ink); border-radius: 4px; box-shadow: var(--shadow); padding: 34px 38px 26px;
+  display: grid; grid-template-rows: 1fr auto; height: 560px; max-height: 70vh; }
+@media (max-width: 560px) { .leaf { padding: 24px 20px 18px; height: 520px; } }
+.flow { overflow: hidden; height: 100%; column-fill: auto; column-gap: 60px; font-family: var(--bk-font, var(--read)); font-size: var(--bk-size, 15.5px); line-height: var(--bk-lead, 1.95);
+  text-align: justify; }
+.flow p { margin: 0 0 .85em; }
+.foot { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; font-size: .75rem; color: var(--bk-muted);
+  font-variant-numeric: tabular-nums; }
+.foot button { font: inherit; background: none; border: 0; color: var(--bk-accent); cursor: pointer; padding: 4px 8px; font-size: .85rem; }
+.foot button:disabled { opacity: .3; cursor: default; }
+/* 書裡的版面：跟 EPUB 用同一套規則 */
+.flow .chapter-open { text-align: center; padding-top: 18%; break-after: column; }
+.flow .chapter-open .no { font-size: .78em; letter-spacing: .5em; color: var(--bk-accent); margin-bottom: 1.2em; }
+.flow .chapter-open h1 { font-family: var(--display); font-weight: 400; font-size: 1.8em; letter-spacing: .15em; margin: 0 0 .7em; text-wrap: balance; }
+.flow .chapter-open .when { font-size: .78em; color: var(--bk-muted); letter-spacing: .1em; }
+.flow .scene { font-size: .74em; color: var(--bk-muted); letter-spacing: .05em; border-top: 1px solid var(--bk-soft); border-bottom: 1px solid var(--bk-soft);
+  padding: .35em 0; margin: 2em 0 1.2em; text-align: center; }
+.flow .you { margin: 1.5em 0 1.5em 1em; padding: .1em 0 .1em 1em; border-left: 2px solid var(--bk-accent); color: var(--bk-muted); }
+.flow .you p { font-size: .95em; margin-bottom: .45em; }
+.flow .you .who { font-size: .7em; letter-spacing: .3em; color: var(--bk-accent); }
+.flow .status { background: var(--bk-soft); border-radius: 6px; padding: .7em .9em; margin: 1.2em 0 2em; font-size: .78em; line-height: 1.7; break-inside: avoid; }
+.flow .status p { margin: 0 0 .3em; text-align: left; }
+.flow .status .thought { color: var(--bk-accent); }
+.flow .orn { text-align: center; color: var(--bk-accent); letter-spacing: 1em; font-size: .8em; margin: 2em 0; }
+.flow .intro h2 { text-align: center; letter-spacing: .4em; font-size: 1em; color: var(--bk-accent); font-weight: 400; margin: 12% 0 1.6em; }
+.flow .intro .name { text-align: center; font-family: var(--display); font-size: 1.6em; letter-spacing: .2em; margin-bottom: .2em; }
+.flow .intro .meta { text-align: center; font-size: .8em; color: var(--bk-muted); margin-bottom: 2em; }
+.flow .intro .card { font-size: .9em; margin-bottom: .3em; text-align: left; }
+.flow h2, .flow h3 { font-size: 1.05em; }
+/* 妳說的話：四種樣式 */
+.flow[data-layout="bubble"] .you { border-left: 0; margin: 1.4em 0 1.4em 18%; padding: .7em 1em; background: var(--bk-soft); border-radius: 14px 14px 4px 14px; color: var(--bk-ink); }
+.flow[data-layout="script"] .you { border-left: 0; margin: 1.4em 0; padding: 0; color: var(--bk-ink); }
+.flow[data-layout="script"] .you .who { display: inline; letter-spacing: .1em; font-size: .85em; font-weight: 600; }
+.flow[data-layout="script"] .you .who::after { content: "："; }
+.flow[data-layout="script"] .you .said, .flow[data-layout="script"] .you .said p:first-child { display: inline; }
+.flow[data-layout="plain"] .you { border-left: 0; margin: 1.2em 0; padding: 0; color: var(--bk-ink); }
+.flow[data-layout="plain"] .you .who { display: none; }
+/* 章節開頭 */
+.flow[data-opener="left"] .chapter-open { text-align: left; padding-top: 10%; }
+.flow[data-opener="left"] .chapter-open .no { font-size: 2.6em; letter-spacing: .05em; font-family: var(--display); margin-bottom: .2em; }
+.flow[data-opener="line"] .chapter-open { padding-top: 0; break-after: auto; text-align: left; border-bottom: 1px solid var(--bk-soft); margin-bottom: 1.5em; }
+.flow[data-opener="line"] .chapter-open .no { display: inline; letter-spacing: .2em; margin-right: .8em; }
+.flow[data-opener="line"] .chapter-open h1 { display: inline; font-size: 1.2em; }
+.flow[data-opener="line"] .chapter-open .when { margin: .4em 0 .8em; }
+/* 編輯模式 */
+.flow.editing [contenteditable="true"] { outline: 1px dashed color-mix(in srgb, var(--bk-accent) 55%, transparent); outline-offset: 3px; border-radius: 2px; }
+.flow.editing [contenteditable="true"]:focus { outline-style: solid; }
+#editbtn[aria-pressed="true"] { background: var(--gilt); color: #fff; border-color: var(--gilt); }
+.foot-note { font-size: .8rem; color: var(--muted); margin: 0; }
+.search { display: grid; gap: 6px; }
+.flow .cut { display: block; width: 100%; font: inherit; font-family: var(--ui); font-size: .72em; letter-spacing: .1em; color: var(--bk-muted); background: none; border: 0; border-top: 1px dashed var(--bk-soft); padding: .5em 0 0; margin: 1.6em 0 .4em; text-align: left; cursor: pointer; }
+.flow .cut.on { color: var(--bk-accent); border-top-color: var(--bk-accent); }
+/* 手機：書的預覽放上面，設定一格一格可以摺起來；手機選不了整個資料夾，按鈕收掉 */
+@media (max-width: 860px) {
+  .desk { order: -1; }
+  .step h2 { cursor: pointer; }
+  .step h2::after { content: "▾"; margin-left: auto; color: var(--muted); font-family: var(--ui); }
+  .step.closed h2::after { content: "▸"; }
+  .step.closed > *:not(h2) { display: none; }
+}
+@media (pointer: coarse) { #pickfolder { display: none; } }
+.search input { font: inherit; color: var(--ink); background: var(--field); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; width: 100%; }
+.hits { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px; max-height: 240px; overflow: auto; display: grid; gap: 2px; }
+.hits .hint { padding: 4px 6px; }
+.hit { font: inherit; font-size: .84rem; text-align: left; background: none; border: 0; border-radius: 5px; padding: 6px 8px; color: var(--ink); cursor: pointer; line-height: 1.5; }
+.hit:hover, .hit:focus-visible { background: var(--field); }
+.hit b { color: var(--gilt); font-weight: 500; margin-right: .4em; }
+.hit mark, .flow mark { background: color-mix(in srgb, var(--gilt) 35%, transparent); color: inherit; border-radius: 2px; }
+@media (prefers-reduced-motion: no-preference) { .flow { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+  <figure class="hero"><img src="hero.jpg" alt="一長條寫著對話的毛邊紙帶，一路摺成一本夾著紫色書籤帶的小書。對話裝幀室：把對話，留成一本書。露比 × 格，偶爾還有 codex。" width="971" height="745"></figure>
+  <header class="top">
+    <h1>對話裝幀室</h1>
+    <p>把跟角色的整段故事，裝訂成一本能放上書架的電子書。全程在妳的瀏覽器裡做，檔案不會上傳到任何地方。<a href="guide.html" style="color:var(--gilt);margin-left:.5em">看使用指南 ›</a></p>
+  </header>
+
+  <div class="grid">
+    <form class="order" id="order" autocomplete="off">
+      <section class="step">
+        <h2><span class="n">STEP 1</span>放入對話紀錄</h2>
+        <p class="hint">到 takeout.google.com，只勾「我的活動」，格式選 JSON。解壓後在「我的活動」裡找到 <b>Gemini Apps</b> 資料夾，整個拖進來就好。<br>
+          <b>不要勾「Gemini」那一項</b>，那是 Gem 的名稱與指令，是創作者的後台，這裡用不到也不讀。</p>
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="選擇或拖入我的活動.json">
+          把 <b>Gemini Apps 資料夾</b>或裡面的 <b>json</b> 拖進來，或點這裡選檔案
+          <input type="file" id="file" accept=".json,application/json" hidden>
+          <input type="file" id="folder" webkitdirectory hidden>
+        </div>
+        <button type="button" class="btn ghost" id="pickfolder" style="justify-self:start">選整個資料夾</button>
+        <p class="msg" id="loadmsg"><span class="tag sample">範例</span> 現在右邊是一本示範書，放入妳的檔案就會換成妳的。</p>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">STEP 2</span>選一位角色</h2>
+        <select id="gem" aria-label="角色"></select>
+        <label id="storywrap" hidden>這位角色有好幾段故事，選一段做成書<select id="story"></select></label>
+        <p class="stats" id="stats"></p>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">STEP 3</span>書的資料</h2>
+        <label>書名<input type="text" id="title"></label>
+        <div class="row2">
+          <label>副標<input type="text" id="subtitle" placeholder="例：他 × 妳"></label>
+          <label>妳在故事裡的名字<input type="text" id="username" placeholder="我"></label>
+        </div>
+        <label>角色介紹（不填也可以）<textarea id="intro" placeholder="用妳的話寫他是個怎樣的人、你們怎麼遇見的。"></textarea></label>
+        <label style="grid-template-columns:auto 1fr;align-items:center;gap:8px"><input type="checkbox" id="status" checked> 收錄每頁底下的狀態欄（穿著、距離、心聲那些）</label>
+        <label style="grid-template-columns:auto 1fr;align-items:center;gap:8px"><input type="checkbox" id="tidy" checked> 清掉 Gemini 多打的句號（單獨一個「。」的段落、「。。」、段落開頭的「。」）</label>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">STEP 4</span>內頁排版</h2>
+        <div class="swatches" id="palettes" role="group" aria-label="書頁配色"></div>
+        <div class="row2">
+          <label>妳說的話<select id="layout">
+            <option value="rule">左邊一道線</option><option value="bubble">對話泡泡</option><option value="script">劇本式</option><option value="plain">融進正文</option>
+          </select></label>
+          <label>字型<select id="font">
+            <option value="serif">明體</option><option value="kai">楷體</option><option value="sans">黑體</option><option value="cactus">仙人掌明體（復古）</option><option value="iansui">芫荽（手寫感）</option><option value="round">粉圓（圓體）</option><option value="choco">朱古力黑體（復古）</option>
+          </select></label>
+        </div>
+        <div class="row2">
+          <label>字級 <span id="sizev"></span><input type="range" id="size" min="13" max="21" step="0.5" value="15.5"></label>
+          <label>行距 <span id="leadv"></span><input type="range" id="lead" min="1.5" max="2.4" step="0.05" value="1.95"></label>
+        </div>
+        <label>章節開頭<select id="opener">
+          <option value="center">置中，留白多</option><option value="left">靠左，大字章號</option><option value="line">一行帶過</option>
+        </select></label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn ghost" id="pickbg">放入書頁背景照片</button>
+          <button type="button" class="btn ghost" id="clearbg" hidden>拿掉照片</button>
+          <input type="file" id="bgfile" accept="image/png,image/jpeg,image/webp" hidden>
+        </div>
+        <label id="bgfadewrap" hidden>照片淡化 <span id="bgfadev"></span><input type="range" id="bgfade" min="0.5" max="0.95" step="0.01" value="0.8"></label>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">STEP 5</span>章名</h2>
+        <div class="row2">
+          <label>分章方式<select id="chmode"><option value="time">聊天中斷就換章</option><option value="pages">每幾頁一章</option><option value="manual">自己切</option></select></label>
+          <label id="chnumwrap"><span id="chnumlabel"></span><input type="number" id="chnum" min="1" max="500" step="1" inputmode="numeric"></label>
+        </div>
+        <p class="hint" id="chhint"></p>
+        <p class="hint">章名不填就叫「第一章、第二章⋯」。內文要改字，按右上的「編輯文字」直接在書上改。</p>
+        <div class="chapters" id="chapters"></div>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">STEP 6</span>封面</h2>
+        <div class="row2">
+          <label>版型<select id="ctpl">
+            <option value="frame">雙框，書名置中</option><option value="band">上圖下字</option><option value="vertical">直書</option><option value="full">滿版圖</option>
+          </select></label>
+          <label>書名字型<select id="cfont">
+            <option value="kai">楷體</option><option value="serif">明體</option><option value="sans">黑體</option><option value="cactus">仙人掌明體（復古）</option><option value="iansui">芫荽（手寫感）</option><option value="round">粉圓（圓體）</option><option value="choco">朱古力黑體（復古）</option>
+          </select></label>
+        </div>
+        <div class="row2">
+          <label>底色<input type="color" id="cbg"></label>
+          <label>字色<input type="color" id="cink"></label>
+        </div>
+        <label>書名大小 <span id="ctsv"></span><input type="range" id="cts" min="70" max="220" step="5" value="150"></label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn ghost" id="pickcover">放入封面圖</button>
+          <button type="button" class="btn ghost" id="clearcover" hidden>拿掉圖</button>
+          <input type="file" id="coverfile" accept="image/png,image/jpeg,image/webp" hidden>
+        </div>
+        <p class="hint">想要獨一無二的圖：把這段咒語丟給會畫圖的 AI，畫好再放回來。書名會自己疊上去，圖裡不用有字。</p>
+        <pre class="promptbox" id="coverprompt"></pre>
+        <button type="button" class="btn ghost" id="copyprompt" style="justify-self:start">複製封面咒語</button>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">STEP 7</span>裝訂</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="submit" class="btn" id="make">下載 EPUB</button><button type="button" class="btn ghost" id="makeprint">下載可列印版（存成 PDF）</button></div>
+        <p class="msg" id="makemsg"></p>
+        <p class="hint">EPUB 用 iPhone／Mac 的「書籍」、Google Play 圖書、Kobo 打開，字型和顏色會照閱讀器的設定走；書頁照片在 EPUB 裡會變成每章開頭的插圖頁。<br>想要跟右邊預覽一模一樣（字型、照片都在），用「可列印版」：用瀏覽器打開，按「存成 PDF」。<br>Windows 沒有內建 EPUB 閱讀器，要裝 Calibre、Thorium，或上傳到 Google Play 圖書；不想裝的話用可列印版就好。<br>之後還有新的對話，重新匯出一次、用同樣的書名與章名再裝訂，新的章節會接在最後面。</p>
+      </section>
+    </form>
+
+    <div class="desk">
+      <div class="deskbar">
+        <span class="where" id="where"></span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button type="button" class="btn ghost" id="editbtn" aria-pressed="false">編輯文字</button>
+          <button type="button" class="btn ghost" data-go="intro">角色</button>
+          <button type="button" class="btn ghost" data-go="prev">上一章</button>
+          <button type="button" class="btn ghost" data-go="next">下一章</button>
+        </div>
+      </div>
+      <div class="search">
+        <input type="search" id="q" placeholder="搜尋這本書的內容⋯" aria-label="搜尋這本書的內容" autocomplete="off">
+        <div class="hits" id="hits" hidden></div>
+      </div>
+      <div class="book">
+        <div class="cover"><canvas id="cover" width="1600" height="2400" aria-label="封面"></canvas></div>
+        <div class="leaf" id="leaf">
+          <div class="flow" id="flow"></div>
+          <div class="foot"><button type="button" id="pgprev" aria-label="上一頁">‹ 上一頁</button><span id="pgno"></span><button type="button" id="pgnext" aria-label="下一頁">下一頁 ›</button></div>
+        </div>
+      </div>
+      <p class="foot-note">書只收錄聊天畫面上看得到的字。頁碼有「🏷️ Page」的角色，重來或重新生成的版本會自動蓋掉舊的；「詢問系統」、叫它整理劇情那些不進書。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+// ───────── 書頁配色 ─────────
+const PALETTES = {
+  ink:  { name: '墨', paper: '#f6f2ea', ink: '#2b2622', accent: '#8a3b2e', soft: '#ebe3d4', muted: '#7a6f64' },
+  sea:  { name: '海', paper: '#f1f4f2', ink: '#1f2a30', accent: '#2f5d73', soft: '#dde6e6', muted: '#66757b' },
+  rose: { name: '薔薇', paper: '#f8f0ee', ink: '#2e2426', accent: '#9b4a5a', soft: '#efdcdc', muted: '#7d6a6d' },
+  moss: { name: '苔', paper: '#f3f2ea', ink: '#23261f', accent: '#55683d', soft: '#e2e3d2', muted: '#6f7264' },
+  night:{ name: '夜', paper: '#1c1f24', ink: '#dfe2e6', accent: '#c9a45c', soft: '#2a2f36', muted: '#9199a3' },
+};
+// 預覽用網頁字型；EPUB 裡用各家閱讀器自己有的字
+const WEBFONT = { serif: '"Noto Serif TC", "Songti TC", serif', kai: '"LXGW WenKai TC", "Kaiti TC", "BiauKai", serif', sans: '"Noto Sans TC", "PingFang TC", sans-serif',
+  cactus: '"Cactus Classical Serif", "Noto Serif TC", serif', iansui: '"Iansui", "LXGW WenKai TC", serif', round: '"Huninn", "Noto Sans TC", sans-serif', choco: '"Chocolate Classical Sans", "Noto Sans TC", sans-serif' };
+const BOOKFONT = { serif: '"Songti TC","Noto Serif TC","Source Han Serif TC","PMingLiU",serif', kai: '"Kaiti TC","BiauKai","STKaiti","DFKai-SB","LXGW WenKai TC",serif', sans: '"PingFang TC","Heiti TC","Noto Sans TC","Microsoft JhengHei",sans-serif',
+  cactus: '"Cactus Classical Serif","Songti TC","Noto Serif TC","PMingLiU",serif', iansui: '"Iansui","Kaiti TC","LXGW WenKai TC",serif', round: '"Huninn","Yuanti TC","PingFang TC",sans-serif', choco: '"Chocolate Classical Sans","PingFang TC","Noto Sans TC",sans-serif' };
+const SAMPLE = (() => {
+  const g = '🌙 弗萊明';
+  const mk = (time, user, html) => ({ header: 'Gemini Apps', title: 'Prompted ' + user, time,
+    details: [{ url: 'https://gemini.google.com/app/sample' + time.slice(8, 10) }],
+    subtitles: [{ name: g + ' was used in this chat. Manage your Gems.', url: 'https://gemini.google.com/gems/view' }],
+    safeHtmlItem: [{ html }] });
+  const st = (p, a, b, t) => `<hr><p><strong>▏👔</strong>：${a}\n<strong>▏🫂</strong>：${b}\n<strong>▏⛓️</strong>：${p * 3}% | 🌧️ | [${t}]\n<strong>▏🏷️</strong>：Page ${p}</p>`;
+  return [
+    mk('2026-03-02T12:10:00Z', '「不好意思，這裡有人坐嗎？」我抱著濕掉的傘，指了指他對面的位子。',
+      `<p>🕒：03/02 (週一) 20:10 | 📍：台北市大安區 巷弄裡的二手書店 | ☁️：梅雨，玻璃窗起霧</p><p>雨聲把書店裡的安靜壓得更低了。</p><p>弗萊明從書頁上抬起眼，視線先落在妳滴著水的傘尖，才慢慢往上。他把桌上攤開的筆記本往自己這邊收了一點，空出半張桌子。</p><p>「沒有人。」他說，聲音不大，像怕驚動架上的書。「傘可以靠在暖氣旁邊，老闆不會介意。」</p><p>他重新低下頭，但翻頁的手停了很久。</p>` + st(1, '深灰高領毛衣，袖口有一點墨水痕。', '一張舊木桌的兩端。', '她的頭髮在滴水。要不要把圍巾借她……太唐突了。')),
+    mk('2026-03-02T12:24:00Z', '我坐下來，偷看他在讀的書名。「是《雨天炎天》耶。」',
+      `<p>「妳也讀村上的遊記？」</p><p>他把書闔起來，封面轉向妳，指腹壓在書脊上那道被翻到發白的折痕。</p><p>「很多人只讀他的小說。」他頓了一下，像是在決定要不要說下去。「這本我每年雨季都會重讀一次。好像讀完，雨就沒那麼難熬。」</p><p>窗外有機車濺起水花。他看著妳，眼神比剛才柔一點。</p>` + st(2, '深灰高領毛衣。', '隔著桌子，他把書推到中間。', '她認得這本書。我居然有點高興。')),
+    mk('2026-03-03T14:00:00Z', '隔天傍晚我又去了那間書店，他還坐在同一個位子。「你每天都在嗎？」',
+      `<p>🕒：03/03 (週二) 22:00 | 📍：同一間二手書店 | ☁️：雨停了，地上還是濕的</p><p>「只有下雨天。」</p><p>弗萊明說完才發現今天沒有下雨，耳根慢慢紅了。他低頭假裝整理筆記本的邊角，把它對齊桌緣，又對齊了一次。</p><p>「……今天是例外。」</p>` + st(3, '黑色大衣掛在椅背。', '她直接坐到對面，很自然。', '我在等她。這件事絕對不能被她發現。')),
+    mk('2026-03-03T14:15:00Z', '「那我也是例外。」我笑著把一杯熱可可推到他面前。',
+      `<p>他看著那杯可可，很久沒有說話。</p><p>最後他雙手捧起杯子，像捧著什麼容易碎的東西。</p><p>「謝謝。」他說。「下次換我請。」</p><p>「下次」這兩個字，他說得很輕，卻很確定。</p>` + st(4, '黑色大衣掛在椅背，袖子捲起。', '距離沒有變，但他不再把筆記本收起來。', '下次。我說了下次。她沒有拒絕。')),
+  ];
+})();
+
+// ───────── 讀檔與挑對話 ─────────
+const SKIP_TITLE = /^(Created|Selected|Branched|Gave|Used|Viewed|Searched|Deleted|已建立|已選取|已刪除)\b/;
+const PROMPT_PREFIX = /^(Prompted|You said|已提示|提示了?)\s*/;
+const gemOf = x => {
+  const s = (x.subtitles || []).find(s => /gemini\.google\.com\/(gems|notebooks)/.test(s.url || '') || / was used in this/.test(s.name || ''));
+  return s ? (s.name || '').replace(/\s*(was used in this[\s\S]*|已在[\s\S]*|在這段對話[\s\S]*)$/, '').trim() : '';
+};
+const META = [/^[（(]\s*(詢問系統|系統|OOC|ooc)/, /^【系統/, /^```/, /^請(只)?整理/, /^請接續/, /^接續/, /^推進第/, /^請問可以讀到/, /^讀的到/, /^請讀取/, /^請(用|依|依照|參考|遵守)以下/, /^【[^】]{0,20}(指令|設定|規則)】/];
+const isMeta = t => META.some(r => r.test(t.trim()));
+// 故事的一則回覆只會標一個頁碼；提到一堆頁碼的是「整理劇情」那種，不算故事的一頁
+// 提到頁數範圍（1-158頁、第1頁至第158頁、p1-p158）的是整理劇情或貼摘要：回覆整則不收、她的話不印
+const RANGE = /(?:第\s*)?\d+\s*頁?\s*(?:至|到|~|～|-|–)\s*(?:第\s*)?\d+\s*頁|\bp\s*\d+\s*[-–~]\s*p\s*\d+|(?:頁碼|頁數|Page)\s*[:：]?\s*\d+\s*[-–~]\s*\d+/i;
+const pageOf = html => { const all = [...plainish(html).matchAll(/(?:Page|頁碼|頁數)\s*[:：]?\s*(\d+)/gi)]; return all.length && all.length <= 2 ? Number(all.at(-1)[1]) : null; };
+const plainish = html => html.replace(/<[^>]+>/g, ' ');
+
+function listGems(activity) {
+  const g = new Map();
+  for (const x of activity) { const k = gemOf(x); if (k) g.set(k, (g.get(k) || 0) + 1); }
+  return [...g.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+// 同一個 Gem 常常開過好幾段故事（頁碼又從 1 開始）。每一頁接到有「前一頁」的那段故事；
+// 頁碼倒退一兩頁是重新生成，後來的版本蓋掉舊的
+function storylines(turns) {
+  const stories = [];
+  for (const t of turns) {
+    if (!t.page) continue;
+    let home = null;
+    for (let i = stories.length - 1; i >= 0 && !home; i--) if (stories[i].some(k => k.page === t.page - 1)) home = stories[i];
+    // 中間缺頁（例如那頁重新生成被刪掉）：接到最後一頁最接近的那段
+    if (!home && t.page > 1) for (const st of stories) if (st.at(-1).page < t.page && (!home || st.at(-1).page > home.at(-1).page)) home = st;
+    if (!home) { stories.push([t]); continue; }
+    // 倒退超過十頁是回到前面重開一條線（例如從第 37 頁改寫後面的劇情）：分成另一段故事，兩條都留
+    if (home.filter(k => k.page >= t.page).length > 10) { stories.push([...home.filter(k => k.page < t.page), t]); continue; }
+    while (home.length && home.at(-1).page >= t.page) home.pop();
+    home.push(t);
+  }
+  return stories.filter(st => st.length >= 3);
+}
+// 分章：預設是聊天中斷超過幾小時就換章；也可以每幾頁一章，或自己在書上切
+function chaptersOf(turns, st = S.style, breaks = S.breaks) {
+  if (st.chapterMode === 'pages') { const n = Math.max(1, st.chapterPages | 0), out = []; for (let i = 0; i < turns.length; i += n) out.push(turns.slice(i, i + n)); return out; }
+  if (st.chapterMode === 'manual') { const out = []; for (const t of turns) { if (!out.length || breaks[t.time]) out.push([t]); else out.at(-1).push(t); } return out; }
+  const gap = Math.max(0.5, Number(st.chapterHours) || 4) * 3600e3, chapters = [];
+  for (const t of turns) {
+    const last = chapters.at(-1);
+    if (!last || Date.parse(t.time) - Date.parse(last.at(-1).time) > gap) chapters.push([t]); else last.push(t);
+  }
+  return chapters.reduce((acc, c) => { if (acc.length && c.length < 3) acc.at(-1).push(...c); else acc.push(c); return acc; }, []);
+}
+function collect(activity, gem) {
+  let turns = activity.filter(x => gemOf(x) === gem && !SKIP_TITLE.test(x.title || ''))
+    .map(x => {
+      const html = (x.safeHtmlItem || []).map(s => s.html || '').join('\n');
+      const user = (x.title || '').replace(PROMPT_PREFIX, '');
+      return { time: x.time, user, html, page: pageOf(html), meta: isMeta(user) || RANGE.test(user), summary: RANGE.test(plainish(html)), card: /角色卡/.test(user.slice(0, 40)) };
+    }).filter(t => t.html && !t.summary).sort((a, b) => (a.time < b.time ? -1 : 1));
+  const total = turns.length;
+  const paged = turns.filter(t => t.page).length >= turns.length * 0.5;
+  if (paged) return { stories: storylines(turns), total, paged };
+  turns = turns.filter(t => !t.meta || t.html.length > 800);
+  turns = turns.filter((t, i) => { const n = turns[i + 1]; return !n || n.user.slice(0, 40) !== t.user.slice(0, 40); });
+  return { stories: turns.length ? [turns] : [], total, paged };
+}
+
+// ───────── 文字處理（預覽與 EPUB 共用）─────────
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const decoder = document.createElement('textarea');
+const decode = s => { decoder.innerHTML = s; return decoder.value; };
+const ALLOW = new Set(['p','br','hr','strong','em','b','i','h2','h3','h4','ul','ol','li','blockquote','pre','code','table','thead','tbody','tr','th','td']);
+const VOID = new Set(['br', 'hr']);
+function clean(html) {
+  let out = '', stack = [];
+  for (const m of html.matchAll(/<(\/?)([a-zA-Z0-9]+)[^>]*?>|([^<]+)/g)) {
+    if (m[3] !== undefined) { out += esc(decode(m[3])); continue; }
+    const close = m[1] === '/', tag = m[2].toLowerCase();
+    const t = tag === 'b' ? 'strong' : tag === 'i' ? 'em' : tag === 'div' ? 'p' : tag;
+    if (!ALLOW.has(t)) continue;
+    if (VOID.has(t)) { if (!close) out += `<${t}/>`; continue; }
+    if (!close) { out += `<${t}>`; stack.push(t); continue; }
+    const at = stack.lastIndexOf(t);
+    if (at < 0) continue;
+    while (stack.length > at) out += `</${stack.pop()}>`;
+  }
+  while (stack.length) out += `</${stack.pop()}>`;
+  return out.replace(/<p>\s*<\/p>/g, '');
+}
+const plain = html => decode(html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n').replace(/<[^>]+>/g, '')).trim();
+const SEP = /<hr\s*\/?>|[━─—═＿_]{6,}/g;
+const LABELED = /(^|\n|>)\s*(▏|\p{Extended_Pictographic}\uFE0F?\s*[^：:\n<]{0,10}[：:]|[^\s：:\n<>「」『』，。！？]{1,6}[：:])/gu;
+// 用分隔線把一則回覆切段；「表情＋標籤：」佔多數的段落是狀態欄（有的角色放開頭、有的放結尾）
+function splitReply(html) {
+  let scene = '', statusTop = '', status = '';
+  const cuts = [0, ...[...html.matchAll(SEP)].flatMap(m => [m.index, m.index + m[0].length]), html.length];
+  const segs = [];
+  for (let i = 0; i < cuts.length; i += 2) segs.push(html.slice(cuts[i], cuts[i + 1]));
+  const isStatus = seg => { const rows = plain(seg.replace(/<\/li>/gi, '\n')).split('\n').map(r => r.trim()).filter(Boolean);
+    const lab = (seg.match(LABELED) || []).length;
+    return (lab >= 2 && lab >= rows.length * 0.4) || (/<table/i.test(seg) && /狀態|數值|好感|頁數|頁碼/.test(seg)); };
+  const keep = [];
+  // 狀態欄那段裡混著的正文（沒有標籤、又夠長的段落）拿回正文
+  const hasLabel = chunk => (chunk.match(LABELED) || []).length > 0 || /<t[dh]/i.test(chunk);
+  segs.forEach(seg => {
+    if (!isStatus(seg)) { keep.push(seg); return; }
+    const chunks = seg.split(/(?<=<\/p>|<\/table>)/i), stat = [], prose = [];
+    for (const c of chunks) (!hasLabel(c) && plain(c).length > 25 ? prose : stat).push(c);
+    const bottom = keep.some(k => plain(k).length > 40);
+    if (bottom) { status += stat.join(''); keep.push(prose.join('')); } else { statusTop += stat.join(''); keep.push(prose.join('')); }
+  });
+  // 分隔線落在段落中間時，補齊沒關好的 <p>
+  let body = keep.join('').replace(/^\s*<\/p>/, '').replace(/<p>\s*$/, '');
+  body = body.replace(/<p>(?![\s\S]*<\/p>)[\s\S]*$/, x => x + '</p>');
+  const first = body.match(/^\s*<p>([\s\S]*?)<\/p>/);
+  if (first && /🕒|📍/.test(first[1])) { scene = plain(first[1]); body = body.slice(first[0].length); }
+  return { scene, body, status, statusTop };
+}
+function statusCard(html) {
+  // 表格型的狀態欄：一列變成「標籤：值」
+  html = html.replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, '').replace(/<thead[\s\S]*?<\/thead>/gi, '')
+    .replace(/<tr[^>]*>([\s\S]*?)<\/tr>/gi, (_, row) => { const c = [...row.matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(x => plain(x[1])); return c.length >= 2 ? `<p>${c[0]}：${c.slice(1).join('　')}</p>` : ''; });
+  const text = plain(html.replace(/<\/li>/gi, '\n').replace(/<li>/gi, '・'));
+  const rows = text.replace(/[━─—═＿_]{6,}/g, '\n').split(/\n|(?=▏)|(?=\s\p{Extended_Pictographic}\uFE0F?\s*[^：:\s]{1,8}[：:])/u)
+    .map(s => s.trim().replace(/^▏\s*/, '').replace(/\$([^$\n]{1,40})\$/g, '$1')).filter(s => s && !/^[。．.」』、，*\s]+$/.test(s))
+    .filter(s => !/^(🏷️?|📄)?\s*(Page|頁碼|頁數)\s*[:：]?\s*\d+\s*$/i.test(s) && !/^[^：:]{1,10}[：:]\s*[。．.]?\s*$/.test(s) && !/^🏷️?\s*[:：]/.test(s));
+  if (!rows.length) return '';
+  return `<aside class="status">${rows.map(r => {
+    const m = r.match(/^([^：:]{1,14}?)\s*[:：]\s*([\s\S]*)$/);
+    const [k, v] = m ? [m[1], m[2]] : ['', r];
+    return `<p>${k ? `<span class="k">${esc(k.replace(/\*\*/g, ''))}</span> ` : ''}${esc(v).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/\*\*/g, '').replace(/\[([^\]]+)\]|『([^』]+)』/g, (_, a, b) => `<span class="thought">${a ?? '『' + b + '』'}</span>`)}</p>`;
+  }).join('')}</aside>`;
+}
+const lines = text => text.split(/\n+/).map(s => s.trim()).filter(Boolean).map(l => `<p>${esc(l)}</p>`).join('');
+
+const NUM = ['零','一','二','三','四','五','六','七','八','九','十'];
+const zh = n => n <= 10 ? NUM[n] : n < 20 ? '十' + NUM[n - 10] : NUM[Math.floor(n / 10)] + '十' + (n % 10 ? NUM[n % 10] : '');
+const tw = iso => new Date(Date.parse(iso) + 8 * 3600e3);
+const fmtDate = d => `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, '0')}.${String(d.getUTCDate()).padStart(2, '0')}`;
+const bare = s => s.replace(/[\p{Extended_Pictographic}️‍]/gu, '').trim();
+
+// ───────── 狀態 ─────────
+const $ = id => document.getElementById(id);
+const DEFAULT_STYLE = { palette: 'sea', layout: 'rule', font: 'serif', size: 15.5, lead: 1.95, opener: 'center', showStatus: true, tidy: true, bgFade: 0.8, chapterMode: 'time', chapterHours: 4, chapterPages: 20 };
+// Gemini 有時會多吐句號：整段只有一個「。」、「。。」、段落第一個字是「。」。原文就是這樣，清掉是排版上的選擇
+const tidy = html => html.replace(/<p>\s*[。．.」』、，*\s]+\s*<\/p>/g, '').replace(/<pre>\s*<code>\s*[。．.」』\s]*<\/code>\s*<\/pre>/g, '').replace(/\*\*([^*<>]+?)\*\*/g, '<strong>$1</strong>').replace(/\*\*/g, '').replace(/。{2,}/g, '。').replace(/<p>\s*。+/g, '<p>');
+const DEFAULT_COVER = { tpl: 'frame', font: 'kai', bg: '', ink: '', size: 150 };
+const S = { activity: SAMPLE, sample: true, gem: '', book: null, cover: null, bg: null, bgBaked: null, breaks: {}, chapterNames: {}, edits: {},
+  style: { ...DEFAULT_STYLE }, cstyle: { ...DEFAULT_COVER }, view: 0, editing: false };
+
+// 改過的東西存在這台瀏覽器（以角色為單位）；存不了就算了，頁面照樣能用
+const storeKey = () => 'rp-book:' + S.gem + ':' + (S.book?.turns[0]?.time || '');
+function persist() {
+  if (S.sample) return;
+  try { localStorage.setItem(storeKey(), JSON.stringify({ chapterNames: S.chapterNames, breaks: S.breaks, edits: S.edits, style: S.style, cstyle: S.cstyle,
+    title: $('title').value, subtitle: $('subtitle').value, username: $('username').value, intro: $('intro').value })); } catch {}
+}
+function restore() {
+  if (S.sample) return null;
+  try { return JSON.parse(localStorage.getItem(storeKey()) || 'null'); } catch { return null; }
+}
+let persistTimer; const persistSoon = () => { clearTimeout(persistTimer); persistTimer = setTimeout(persist, 400); };
+
+const meta = () => ({
+  title: $('title').value.trim() || bare(S.gem), subtitle: $('subtitle').value.trim(), userName: $('username').value.trim(),
+  intro: $('intro').value, character: bare(S.gem),
+});
+const pal = () => PALETTES[S.style.palette] || PALETTES.sea;
+
+function syncControls() {
+  const st = S.style, cs = S.cstyle, p = pal();
+  $('layout').value = st.layout; $('font').value = st.font; $('size').value = st.size; $('lead').value = st.lead; $('opener').value = st.opener;
+  $('status').checked = st.showStatus; $('tidy').checked = st.tidy; $('bgfade').value = st.bgFade;
+  $('chmode').value = st.chapterMode; $('chnumwrap').hidden = st.chapterMode === 'manual';
+  $('chnumlabel').textContent = st.chapterMode === 'pages' ? '每幾頁' : '中斷幾小時以上';
+  $('chnum').value = st.chapterMode === 'pages' ? st.chapterPages : st.chapterHours;
+  $('chhint').textContent = st.chapterMode === 'manual' ? '右邊書上每一頁開頭有「✂」，按一下從那裡切開新的一章，再按一下合回去。' : st.chapterMode === 'pages' ? '照頁數平均分章。' : '兩則對話中間隔太久就換章，太短的章會併到前一章。';
+  $('sizev').textContent = st.size + 'px'; $('leadv').textContent = Number(st.lead).toFixed(2);
+  $('ctpl').value = cs.tpl; $('cfont').value = cs.font; $('cts').value = cs.size; $('ctsv').textContent = cs.size;
+  $('cbg').value = cs.bg || p.paper; $('cink').value = cs.ink || p.ink;
+  renderPalettes();
+}
+function renderPalettes() {
+  $('palettes').innerHTML = Object.entries(PALETTES).map(([k, p]) =>
+    `<button type="button" class="sw" data-p="${k}" aria-pressed="${k === S.style.palette}"><i style="background:${p.paper};box-shadow:inset -5px 0 0 ${p.accent}"></i>${p.name}</button>`).join('');
+}
+function applyStyle() {
+  const p = pal(), leaf = $('leaf'), flow = $('flow'), st = S.style;
+  for (const [k, v] of Object.entries({ paper: p.paper, ink: p.ink, accent: p.accent, soft: p.soft, muted: p.muted })) leaf.style.setProperty('--bk-' + k, v);
+  leaf.style.setProperty('--bk-font', WEBFONT[st.font]); leaf.style.setProperty('--bk-size', st.size + 'px'); leaf.style.setProperty('--bk-lead', st.lead);
+  flow.dataset.layout = st.layout; flow.dataset.opener = st.opener;
+  leaf.style.backgroundImage = S.bgBaked ? `url(${S.bgBaked.url})` : ''; leaf.style.backgroundSize = 'cover'; leaf.style.backgroundPosition = 'center';
+  $('clearbg').hidden = $('bgfadewrap').hidden = !S.bg; $('bgfadev').textContent = Math.round(st.bgFade * 100) + '%';
+}
+// 書頁背景照片：在畫布上蓋一層紙色把照片淡掉，預覽跟 EPUB 用同一張
+let bgTicket = 0;
+async function bakeBg() {
+  const t = ++bgTicket;
+  if (!S.bg) { if (S.bgBaked) URL.revokeObjectURL(S.bgBaked.url); S.bgBaked = null; applyStyle(); return; }
+  const img = S.bg.img, W = 1200, H = 1800, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d'), r = Math.max(W / img.width, H / img.height);
+  ctx.drawImage(img, (W - img.width * r) / 2, (H - img.height * r) / 2, img.width * r, img.height * r);
+  ctx.globalAlpha = S.style.bgFade; ctx.fillStyle = pal().paper; ctx.fillRect(0, 0, W, H);
+  const blob = await new Promise(ok => cv.toBlob(ok, 'image/jpeg', 0.85));
+  if (t !== bgTicket || !blob) return;
+  if (S.bgBaked) URL.revokeObjectURL(S.bgBaked.url);
+  S.bgBaked = { blob, url: URL.createObjectURL(blob) };
+  applyStyle();
+}
+
+function loadGems() {
+  const gems = listGems(S.activity);
+  $('gem').innerHTML = gems.map(([k, n]) => `<option value="${esc(k)}">${esc(k)}（${n} 則）</option>`).join('');
+  $('gem').value = gems[0]?.[0] || '';
+  pickGem();
+}
+
+function pickGem() {
+  S.gem = $('gem').value;
+  S.all = collect(S.activity, S.gem);
+  const st = S.all.stories;
+  $('storywrap').hidden = st.length <= 1;
+  $('story').innerHTML = st.map((t, i) => { const sc = splitReply(t[0].html).scene.replace(/🕒[^|]*\|?/, '').replace(/[📍☁️]/gu, '').trim().slice(0, 24);
+    return `<option value="${i}">${fmtDate(tw(t[0].time))} 起・${t.length} 頁${sc ? '・' + esc(sc) : ''}</option>`; }).join('');
+  const longest = st.reduce((bi, t, i) => (t.length > (st[bi]?.length || 0) ? i : bi), 0);
+  $('story').value = String(longest);
+  pickStory();
+}
+function pickStory() {
+  const turns = S.all.stories[Number($('story').value) || 0] || [];
+  S.book = { turns, chapters: [], total: S.all.total, paged: S.all.paged, stories: S.all.stories.length };
+  const saved = restore();
+  S.chapterNames = saved?.chapterNames || {}; S.edits = saved?.edits || {}; S.breaks = saved?.breaks || {};
+  S.style = { ...DEFAULT_STYLE, ...(saved?.style || {}) }; S.cstyle = { ...DEFAULT_COVER, ...(saved?.cstyle || {}) };
+  S.book.chapters = chaptersOf(turns);
+  $('title').value = saved?.title ?? (S.sample ? '雨天的書店' : bare(S.gem));
+  $('subtitle').value = saved?.subtitle ?? (S.sample ? '弗萊明 × 我' : '');
+  $('username').value = saved?.username ?? '';
+  $('intro').value = saved?.intro ?? (S.sample ? '只在下雨天出現在二手書店的人。讀村上的遊記，會把筆記本的邊角對齊桌緣。\n這是一本示範書，角色與故事都是虛構的。' : '');
+  const b = S.book;
+  $('stats').innerHTML = b.turns.length
+    ? `共 <b>${b.total}</b> 則，收錄 <b>${b.turns.length}</b> 頁、<b>${b.chapters.length}</b> 章，${fmtDate(tw(b.turns[0].time))} — ${fmtDate(tw(b.turns.at(-1).time))}` +
+      (b.paged ? '<br>有頁碼：重來與整理的部分已經拿掉' : '') + (b.stories > 1 ? `<br>這位角色共有 ${b.stories} 段故事` : '') +
+      (saved ? '<br>接著上次在這台瀏覽器改到的地方' : '')
+    : '這位角色沒有找到對話。';
+  $('q').value = ''; hl = ''; hits = []; $('hits').hidden = true;
+  syncControls(); renderChapters(); renderCoverPrompt(); S.view = 0; renderBook(); renderCover();
+}
+
+function renderChapters() {
+  $('chapters').innerHTML = S.book.chapters.map((c, i) =>
+    `<label for="ch${i}"><span>第${zh(i + 1)}章<small>${fmtDate(tw(c[0].time))}</small></span><input type="text" id="ch${i}" data-key="${esc(c[0].time)}" placeholder="第${zh(i + 1)}章" value="${esc(S.chapterNames[c[0].time] || '')}"></label>`).join('');
+}
+
+// 書的內容：預覽與 EPUB 用同一份 HTML
+function chapterHTML(i) {
+  const m = meta(), c = S.book.chapters[i], title = S.chapterNames[c[0].time] || `第${zh(i + 1)}章`;
+  const body = c.map(t => {
+    const { scene, body, status, statusTop } = splitReply(t.html), ed = S.edits[t.time] || {};
+    const you = !t.meta && !t.card
+      ? `<div class="you"><p class="who">${esc(m.userName || '我')}</p><div class="said" data-part="user">${lines(ed.user ?? t.user)}</div></div>` : '';
+    return `<div class="turn" data-t="${esc(t.time)}">${you}${scene ? `<p class="scene">${esc(scene)}</p>` : ''}${S.style.showStatus && statusTop ? statusCard(statusTop) : ''}<div class="body" data-part="body">${ed.body ?? (S.style.tidy ? tidy(clean(body)) : clean(body))}</div>${S.style.showStatus && status ? statusCard(status) : ''}</div>`;
+  }).join('\n');
+  return { title, html: `<div class="chapter-open"><p class="no">第 ${zh(i + 1)} 章</p><h1 data-part="chtitle" data-key="${esc(c[0].time)}">${esc(title)}</h1><p class="when">${fmtDate(tw(c[0].time))}</p></div>\n${body}\n<p class="orn">・・・</p>` };
+}
+function introHTML() {
+  const m = meta(), b = S.book;
+  const words = b.turns.reduce((n, t) => n + plain(t.html).length, 0);
+  const card = b.turns.find(t => t.card);
+  return `<div class="intro"><h2>角 色</h2><p class="name">${esc(m.character)}</p>
+<p class="meta">${b.turns.length ? fmtDate(tw(b.turns[0].time)) + ' 初次見面 ・ ' : ''}${b.chapters.length} 章 ・ ${b.turns.length} 頁 ・ 約 ${Math.max(1, Math.round(words / 1000))}k 字</p>
+${lines(m.intro)}
+${card ? `<p class="orn">❦</p><p class="name">${esc(m.userName || '')}</p>${card.user.split(/\n+/).map(s => s.replace(/^>\s*/, '').trim()).filter(s => s && !/角色卡/.test(s)).map(s => `<p class="card">${esc(s)}</p>`).join('\n')}` : ''}</div>`;
+}
+
+// ───────── 封面（畫在畫布上，EPUB 直接用這張圖）─────────
+const CFONT = WEBFONT;
+let coverTicket = 0;
+async function renderCover() {
+  const ticket = ++coverTicket, m = meta(), cs = S.cstyle, p = pal();
+  const face = CFONT[cs.font];
+  try { await Promise.all([document.fonts.load(`${cs.size}px ${face}`, m.title + m.subtitle + m.character), document.fonts.load(`40px ${WEBFONT.serif}`, '0123456789.—')]); } catch {}
+  if (ticket !== coverTicket) return;
+  const cv = $('cover'), ctx = cv.getContext('2d'), W = 1600, H = 2400;
+  const bg = cs.bg || p.paper, ink = cs.ink || p.ink, img = S.cover?.img;
+  const b = S.book, range = b.turns.length ? `${fmtDate(tw(b.turns[0].time))} — ${fmtDate(tw(b.turns.at(-1).time))}` : '';
+  ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'alphabetic';
+  const fillImg = (x, y, w, h) => { const r = Math.max(w / img.width, h / img.height), iw = img.width * r, ih = img.height * r;
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih); ctx.restore(); };
+  const fit = (text, size, maxW, fam) => { let s = size; ctx.font = `${s}px ${fam}`; while (s > 40 && ctx.measureText(text).width > maxW) { s -= 4; ctx.font = `${s}px ${fam}`; } return s; };
+  const spaced = (text, x, y, sp, align = 'center') => { ctx.letterSpacing = sp + 'px'; ctx.textAlign = align; ctx.fillText(text, align === 'center' ? x + sp / 2 : x, y); ctx.letterSpacing = '0px'; };
+  const shade = (a) => { const g = ctx.createLinearGradient(0, H * 0.45, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${a})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); };
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  if (cs.tpl === 'frame') {
+    if (img) { fillImg(0, 0, W, H); ctx.fillStyle = bg; ctx.globalAlpha = 0.86; ctx.fillRect(220, 700, W - 440, 700); ctx.globalAlpha = 1; }
+    ctx.strokeStyle = ink; ctx.lineWidth = 3; ctx.strokeRect(90, 90, W - 180, H - 180); ctx.lineWidth = 1; ctx.strokeRect(120, 120, W - 240, H - 240);
+    ctx.fillStyle = ink; const s = fit(m.title, cs.size, W - 520, face); spaced(m.title, W / 2, 1010, s * 0.16);
+    ctx.globalAlpha = 0.72; ctx.font = `56px ${face}`; spaced(m.subtitle, W / 2, 1140, 10); ctx.globalAlpha = 1;
+    ctx.font = `48px serif`; ctx.textAlign = 'center'; ctx.fillText('❦', W / 2, 1300);
+    if (!img) { ctx.font = `60px ${face}`; spaced(m.character, W / 2, 2050, 24); ctx.globalAlpha = 0.65; ctx.font = `40px ${WEBFONT.serif}`; spaced(range, W / 2, 2150, 6); ctx.globalAlpha = 1; }
+  } else if (cs.tpl === 'band') {
+    if (img) fillImg(0, 0, W, 1450); else { ctx.fillStyle = ink; ctx.fillRect(0, 0, W, 1450); ctx.fillStyle = bg; ctx.globalAlpha = 0.12; ctx.font = `900px ${face}`; ctx.textAlign = 'center'; ctx.fillText(m.character.slice(0, 1), W / 2, 1180); ctx.globalAlpha = 1; }
+    ctx.fillStyle = ink; const s = fit(m.title, cs.size, W - 280, face); spaced(m.title, 140, 1450 + 150 + s * 0.8, s * 0.1, 'left');
+    ctx.globalAlpha = 0.72; ctx.font = `56px ${face}`; spaced(m.subtitle, 140, 1450 + 260 + s * 0.8, 8, 'left');
+    ctx.font = `40px ${WEBFONT.serif}`; spaced(range, 140, H - 150, 6, 'left'); ctx.textAlign = 'right'; ctx.font = `48px ${face}`; ctx.fillText(m.character, W - 140, H - 150); ctx.globalAlpha = 1;
+    ctx.fillRect(140, 1450 + 60, 160, 6);
+  } else if (cs.tpl === 'vertical') {
+    if (img) { fillImg(0, 0, W, H); ctx.fillStyle = bg; ctx.globalAlpha = 0.82; ctx.fillRect(W - 520, 0, 520, H); ctx.globalAlpha = 1; }
+    ctx.fillStyle = ink; ctx.textAlign = 'center';
+    const chars = [...m.title], s = Math.min(cs.size * 1.1, (H - 500) / Math.max(chars.length, 1) / 1.12);
+    ctx.font = `${s}px ${face}`; chars.forEach((ch, i) => ctx.fillText(ch, W - 260, 280 + s + i * s * 1.12));
+    const sub = [...m.subtitle.replace(/\s+/g, '')]; ctx.globalAlpha = 0.72; ctx.font = `52px ${face}`;
+    sub.forEach((ch, i) => ctx.fillText(ch === '×' || ch === 'x' ? '・' : ch, W - 260 - s * 0.9 - 30, 340 + 52 + i * 60));
+    ctx.globalAlpha = 1; ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W - 520, 160); ctx.lineTo(W - 520, H - 160); ctx.stroke();
+    ctx.textAlign = 'left'; ctx.font = `56px ${face}`; if (!img) spaced(m.character, 150, H - 230, 16, 'left');
+    ctx.globalAlpha = 0.65; ctx.font = `40px ${WEBFONT.serif}`; if (!img) spaced(range, 150, H - 150, 6, 'left'); ctx.globalAlpha = 1;
+  } else {
+    if (img) { fillImg(0, 0, W, H); shade(0.7); } else { const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, bg); g.addColorStop(1, ink); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+    ctx.fillStyle = img ? '#ffffff' : bg; const s = fit(m.title, cs.size * 1.1, W - 280, face); spaced(m.title, 140, H - 420, s * 0.08, 'left');
+    ctx.globalAlpha = 0.85; ctx.font = `56px ${face}`; spaced(m.subtitle, 140, H - 300, 8, 'left'); ctx.font = `40px ${WEBFONT.serif}`; spaced(range, 140, H - 200, 6, 'left'); ctx.globalAlpha = 1;
+  }
+  $('clearcover').hidden = !S.cover;
+}
+function renderCoverPrompt() {
+  const m = meta(), b = S.book;
+  const firstScene = b.turns[0] ? splitReply(b.turns[0].html).scene : '';
+  const lookTurn = b.turns.find(t => /👔/.test(t.html));
+  const look = lookTurn ? ((plain(splitReply(lookTurn.html).status).match(/👔\s*[:：]\s*([^\n▏]+)/) || [])[1] || '') : '';
+  // 中文、一行一項，使用者看得懂每行在講什麼、要改哪裡
+  $('coverprompt').textContent = `請畫一張收藏版書籍的封面插畫。
+尺寸：直式 2:3
+場景：${firstScene || '（寫下你們第一次見面的地方與當時的氣氛）'}
+角色：${m.character}${look ? `，穿著：${look}` : '（可以補上他的外貌與穿著）'}
+氣氛：優雅、安靜
+畫風：柔和的底片顆粒感、低飽和的色調
+構圖：留一大片空白放書名
+不要：任何文字、字母、浮水印`;
+}
+
+// ───────── 預覽翻頁與編輯 ─────────
+let pages = 1, pg = 0;
+function renderBook(keepPage) {
+  applyStyle();
+  const b = S.book, flow = $('flow');
+  if (!b.chapters.length) { flow.innerHTML = '<p>這位角色還沒有能裝訂的對話。</p>'; $('where').textContent = ''; return; }
+  if (S.view === -1) { flow.innerHTML = introHTML(); $('where').textContent = '角色'; }
+  else { const c = chapterHTML(S.view); flow.innerHTML = c.html; $('where').textContent = `第${zh(S.view + 1)}章 · ${c.title}`; }
+  flow.classList.toggle('editing', S.editing);
+  if (S.editing) flow.querySelectorAll('[data-part]').forEach(el => { el.contentEditable = 'true'; el.spellcheck = false; });
+  if (hl) markText(flow, hl);
+  if (S.style.chapterMode === 'manual' && S.view >= 0) flow.querySelectorAll('.turn').forEach(el => {
+    if (el.dataset.t === b.turns[0].time) return;
+    const on = !!S.breaks[el.dataset.t], btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'cut' + (on ? ' on' : ''); btn.dataset.cut = el.dataset.t;
+    btn.textContent = on ? '✂ 這裡是新的一章（按一下合回上一章）' : '✂ 從這裡開始新的一章';
+    el.prepend(btn);
+  });
+  const at = keepPage ? pg : 0;
+  requestAnimationFrame(() => {
+    const w = flow.clientWidth; flow.style.columnWidth = w + 'px';
+    pages = Math.max(1, Math.round((flow.scrollWidth + 60) / (w + 60))); pg = Math.min(at, pages - 1);
+    // 從搜尋結果跳過來：翻到那段字所在的那一頁
+    if (jumpTo) {
+      const sel = `[data-t="${CSS.escape(jumpTo.t)}"]`, marks = flow.querySelectorAll(sel + ' mark'), el = marks[jumpTo.n] || marks[0] || flow.querySelector(sel);
+      jumpTo = null;
+      if (el) pg = Math.min(pages - 1, Math.max(0, Math.floor((el.getBoundingClientRect().left - flow.getBoundingClientRect().left + flow.scrollLeft) / (w + 60))));
+    }
+    turn(0);
+  });
+}
+// ───────── 搜尋：在整本書的字裡找，點結果跳到那一章那一頁 ─────────
+let hl = '', jumpTo = null, hits = [];
+function markText(root, q) {
+  const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
+  while (walk.nextNode()) if (walk.currentNode.nodeValue.includes(q)) nodes.push(walk.currentNode);
+  for (const n of nodes) {
+    const f = document.createDocumentFragment();
+    n.nodeValue.split(q).forEach((part, i) => { if (i) { const m = document.createElement('mark'); m.textContent = q; f.append(m); } f.append(part); });
+    n.replaceWith(f);
+  }
+}
+function search(q) {
+  const box = $('hits'); q = q.trim(); hits = [];
+  if (!q || !S.book?.chapters.length) { box.hidden = true; box.innerHTML = ''; if (hl) { hl = ''; renderBook(true); } return; }
+  S.book.chapters.forEach((c, i) => c.forEach(t => {
+    const ed = S.edits[t.time] || {};
+    const you = !t.meta && !t.card ? (ed.user ?? t.user) : '';
+    const text = (you + '\n' + plain(ed.body ?? splitReply(t.html).body)).replace(/\s+/g, ' ');
+    let at = text.indexOf(q), n = 0;
+    while (at >= 0 && hits.length < 300) { hits.push({ i, t: t.time, n: n++, snip: text.slice(Math.max(0, at - 16), at + q.length + 24) }); at = text.indexOf(q, at + q.length); }
+  }));
+  box.hidden = false;
+  box.innerHTML = hits.length
+    ? `<p class="hint">找到 ${hits.length >= 300 ? '300 處以上' : hits.length + ' 處'}</p>` + hits.map((h, k) => `<button type="button" class="hit" data-k="${k}"><b>第${zh(h.i + 1)}章</b>${esc(h.snip).split(esc(q)).join('<mark>' + esc(q) + '</mark>')}</button>`).join('')
+    : '<p class="hint">這本書裡沒有這幾個字。</p>';
+}
+function turn(d) {
+  const flow = $('flow'); pg = Math.min(pages - 1, Math.max(0, pg + d));
+  flow.scrollLeft = pg * (flow.clientWidth + 60);
+  $('pgno').textContent = `${pg + 1} / ${pages}`;
+  $('pgprev').disabled = pg === 0 && S.view <= -1; $('pgnext').disabled = pg === pages - 1 && S.view >= S.book.chapters.length - 1;
+}
+function step(d) {
+  if (d > 0 && pg < pages - 1) return turn(1);
+  if (d < 0 && pg > 0) return turn(-1);
+  const next = S.view + d;
+  if (next < -1 || next >= S.book.chapters.length) return;
+  S.view = next; renderBook();
+  if (d < 0) requestAnimationFrame(() => requestAnimationFrame(() => { pg = pages - 1; turn(0); }));
+}
+// 在書上改的字：離開那一段時存起來
+$('flow').addEventListener('focusout', e => {
+  const el = e.target.closest?.('[data-part]'); if (!el) return;
+  const part = el.dataset.part;
+  if (part === 'chtitle') {
+    const v = el.textContent.trim(), k = el.dataset.key; S.chapterNames[k] = /^第.+章$/.test(v) ? '' : v;
+    const input = document.querySelector(`#chapters input[data-key="${CSS.escape(k)}"]`); if (input) input.value = S.chapterNames[k];
+    $('where').textContent = `第${zh(S.view + 1)}章 · ${v}`;
+  } else {
+    const t = el.closest('.turn')?.dataset.t; if (!t) return;
+    const ed = S.edits[t] = S.edits[t] || {};
+    if (part === 'user') ed.user = el.innerText.trim(); else ed.body = clean(el.innerHTML);
+  }
+  persistSoon();
+  const flow = $('flow'); pages = Math.max(1, Math.round((flow.scrollWidth + 60) / (flow.clientWidth + 60))); turn(0);
+});
+$('flow').addEventListener('keydown', e => { if (e.target.closest?.('[data-part="chtitle"]') && e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+
+// ───────── EPUB ─────────
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = u8 => { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+async function deflate(u8) {
+  if (typeof CompressionStream === 'undefined') return null;
+  try { return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()); } catch { return null; }
+}
+async function zip(entries) {
+  const enc = new TextEncoder(), parts = [], central = []; let offset = 0;
+  const now = new Date(), dosTime = (now.getHours() << 11) | (now.getMinutes() << 5), dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  for (const e of entries) {
+    const data = typeof e.data === 'string' ? enc.encode(e.data) : e.data;
+    const name = enc.encode(e.path);
+    const packed = e.store ? null : await deflate(data);
+    const body = packed || data, method = packed ? 8 : 0, crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, method, true); lh.setUint16(10, dosTime, true); lh.setUint16(12, dosDate, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, body.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, method, true); ch.setUint16(12, dosTime, true); ch.setUint16(14, dosDate, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, body.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, name.length, true); ch.setUint32(42, offset, true);
+    parts.push(lh, name, body); central.push(ch, name); offset += 30 + name.length + body.length;
+  }
+  const cdSize = central.reduce((n, p) => n + (p.byteLength ?? p.length), 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, end], { type: 'application/epub+zip' });
+}
+const bookCSS = (p, st, font = BOOKFONT[st.font]) => `@charset "utf-8";
+body{font-family:${font};color:${p.ink};background:${p.paper};line-height:${st.lead};font-size:${Math.round(st.size / 16 * 100)}%;text-align:justify;margin:0}
+p{margin:0 0 .9em}
+.chapter-open{text-align:center;margin:22% 0 3em;page-break-after:always}
+.chapter-open .no{font-size:.8em;letter-spacing:.5em;color:${p.accent};margin:0 0 1.2em}
+.chapter-open h1{font-size:1.7em;letter-spacing:.15em;margin:0 0 .8em;font-weight:normal}
+.chapter-open .when{font-size:.78em;color:${p.muted};letter-spacing:.1em}
+.op-left .chapter-open{text-align:left;margin-top:10%}.op-left .chapter-open .no{font-size:2.6em;letter-spacing:.05em;margin-bottom:.2em}
+.op-line .chapter-open{text-align:left;margin:0 0 1.5em;page-break-after:auto;border-bottom:1px solid ${p.soft}}.op-line .chapter-open .no,.op-line .chapter-open h1{display:inline;margin-right:.8em}.op-line .chapter-open h1{font-size:1.2em}
+.orn{text-align:center;color:${p.accent};margin:2.2em 0;letter-spacing:1em;font-size:.8em}
+.scene{font-size:.74em;color:${p.muted};letter-spacing:.06em;border-top:1px solid ${p.soft};border-bottom:1px solid ${p.soft};padding:.35em 0;margin:2.4em 0 1.4em;text-align:center}
+.you{margin:1.8em 0 1.8em 1.2em;padding:.2em 0 .2em 1em;border-left:2px solid ${p.accent};color:${p.muted}}
+.you p{margin:0 0 .5em;font-size:.95em}
+.you .who{font-size:.7em;letter-spacing:.3em;color:${p.accent};margin-bottom:.4em}
+.lay-bubble .you{border-left:0;margin:1.4em 0 1.4em 18%;padding:.7em 1em;background:${p.soft};border-radius:14px 14px 4px 14px;color:${p.ink}}
+.lay-script .you{border-left:0;margin:1.4em 0;padding:0;color:${p.ink}}.lay-script .you .who{display:inline;letter-spacing:.1em;font-size:.85em;font-weight:bold}.lay-script .you .who:after{content:"："}.lay-script .you .said,.lay-script .you .said p:first-child{display:inline}
+.lay-plain .you{border-left:0;margin:1.2em 0;padding:0;color:${p.ink}}.lay-plain .you .who{display:none}
+.status{background:${p.soft};border-radius:6px;padding:.8em 1em;margin:1.4em 0 2.4em;font-size:.78em;line-height:1.7;page-break-inside:avoid}
+.status p{margin:0 0 .35em;text-align:left}
+.status .thought{color:${p.accent}}
+blockquote{margin:1em 1.5em;color:${p.muted}}
+table{border-collapse:collapse;font-size:.85em}td,th{border:1px solid ${p.soft};padding:.3em .5em}
+.titlepage{text-align:center;margin-top:30%}
+.titlepage h1{font-size:2.2em;letter-spacing:.2em;margin:0 0 .4em;font-weight:normal}
+.titlepage .sub{color:${p.muted};letter-spacing:.15em;margin:0 0 3em}
+.titlepage .by{font-size:.85em;color:${p.accent};letter-spacing:.3em}
+.intro h2,.colophon h2{text-align:center;letter-spacing:.4em;font-size:1.1em;color:${p.accent};margin:15% 0 2em;font-weight:normal}
+.intro .name{text-align:center;font-size:1.6em;letter-spacing:.2em;margin:0 0 .2em}
+.intro .meta{text-align:center;font-size:.8em;color:${p.muted};margin:0 0 2.5em}
+.intro .card{margin:0 0 .3em;font-size:.9em;text-align:left}
+.colophon{font-size:.8em;color:${p.muted};text-align:center}
+nav ol{list-style:none;padding:0}nav li{margin:.6em 0}nav a{color:${p.ink};text-decoration:none}`;
+const xpage = (title, body, cls = '') => `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="zh-TW" lang="zh-TW">
+<head><meta charset="utf-8"/><title>${esc(title)}</title><link rel="stylesheet" type="text/css" href="style.css"/></head>
+<body${cls ? ` class="${cls}"` : ''}>
+${body}
+</body>
+</html>`;
+// 預覽裡的 HTML 轉成 EPUB 要的 XHTML：拿掉編輯用的屬性，br/hr 自己關起來
+const toX = html => html.replace(/\s(data-part|data-key|data-t|contenteditable|spellcheck)="[^"]*"/g, '').replace(/<(br|hr)>/g, '<$1/>');
+
+// 每章前面的插圖頁：照片淡化後把章號、章名印上去（字型跟著網頁選的，印成圖就不會被閱讀器換掉）
+async function chapterArt(i, title) {
+  const p = pal(), img = S.bg.img, W = 1200, H = 1800, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d'), r = Math.max(W / img.width, H / img.height), face = WEBFONT[S.style.font];
+  try { await document.fonts.load(`96px ${face}`, title + '第章' + zh(i + 1)); } catch {}
+  ctx.drawImage(img, (W - img.width * r) / 2, (H - img.height * r) / 2, img.width * r, img.height * r);
+  ctx.globalAlpha = S.style.bgFade; ctx.fillStyle = p.paper; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = p.accent; ctx.font = `44px ${face}`; ctx.letterSpacing = '22px'; ctx.fillText(`第 ${zh(i + 1)} 章`, W / 2 + 11, 760);
+  ctx.fillStyle = p.ink; let s = 96; ctx.letterSpacing = '12px'; ctx.font = `${s}px ${face}`;
+  while (s > 48 && ctx.measureText(title).width > W - 240) { s -= 4; ctx.font = `${s}px ${face}`; }
+  ctx.fillText(title, W / 2 + 6, 900); ctx.letterSpacing = '0px';
+  return new Promise(ok => cv.toBlob(ok, 'image/jpeg', 0.88));
+}
+const blobURL = blob => new Promise(ok => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.readAsDataURL(blob); });
+// 可列印版：一個自己能開的網頁，字型、照片、排版都照預覽，瀏覽器列印時選「存成 PDF」
+async function buildPrint() {
+  const m = meta(), b = S.book, p = pal(), st = S.style, cls = `lay-${st.layout} op-${st.opener}`;
+  await renderCover();
+  const cover = $('cover').toDataURL('image/jpeg', 0.9), bg = S.bgBaked ? await blobURL(S.bgBaked.blob) : '';
+  const fonts = [...document.querySelectorAll('link[rel=stylesheet][href*="fonts.googleapis"]')].map(l => l.outerHTML).join('\n');
+  const chs = b.chapters.map((_, i) => `<section class="ch">${toX(chapterHTML(i).html)}</section>`).join('\n');
+  return new Blob([`<!doctype html>
+<html lang="zh-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(m.title)}</title>
+${fonts}
+<style>${bookCSS(p, st, WEBFONT[st.font])}
+@page{size:A5;margin:16mm 14mm}
+html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{max-width:34em;margin:0 auto;padding:1.5em 16px 4em}
+.pagebg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
+.coverpage img{display:block;width:100%;max-width:26em;margin:0 auto}
+.coverpage,.titlepage,.intro{break-after:page}
+.bar{position:sticky;top:0;z-index:1;display:flex;gap:12px;align-items:center;justify-content:space-between;background:${p.paper};border-bottom:1px solid ${p.soft};padding:10px 0;margin-bottom:2em;font-size:.85em;color:${p.muted}}
+.bar button{font:inherit;border:0;border-radius:6px;padding:8px 14px;background:${p.accent};color:${p.paper};cursor:pointer}
+@media print{body{max-width:none;padding:0}.bar{display:none}}
+</style></head>
+<body class="${cls}">${bg ? `<img class="pagebg" src="${bg}" alt="">` : ''}
+<div class="bar"><span>電腦：列印時目的地選「存成 PDF」，勾選「背景圖形」<br>iPhone：按鈕後在預覽上兩指放大，再從分享存到「檔案」</span><button type="button" onclick="print()">存成 PDF</button></div>
+<div class="coverpage"><img src="${cover}" alt="${esc(m.title)}"></div>
+<div class="titlepage"><h1>${esc(m.title)}</h1><p class="sub">${esc(m.subtitle)}</p><p class="orn">❦</p><p class="by">${esc(m.character)}${m.userName ? ' ・ ' + esc(m.userName) : ''}</p></div>
+${toX(introHTML())}
+${chs}
+</body></html>`], { type: 'text/html' });
+}
+async function buildEpub() {
+  const m = meta(), b = S.book, p = pal(), st = S.style, cls = `lay-${st.layout} op-${st.opener}`;
+  const files = [];
+  const add = (path, data, mime) => files.push({ path, data, mime });
+  await renderCover();
+  const coverBlob = await new Promise(r => $('cover').toBlob(r, 'image/jpeg', 0.92));
+  add('OEBPS/cover.jpg', new Uint8Array(await coverBlob.arrayBuffer()), 'image/jpeg');
+  add('OEBPS/cover.xhtml', xpage(m.title, `<div style="text-align:center;margin:0;padding:0"><img src="cover.jpg" alt="${esc(m.title)}" style="max-width:100%;max-height:100vh"/></div>`));
+  add('OEBPS/title.xhtml', xpage(m.title, `<div class="titlepage"><h1>${esc(m.title)}</h1><p class="sub">${esc(m.subtitle)}</p><p class="orn">❦</p><p class="by">${esc(m.character)}${m.userName ? ' ・ ' + esc(m.userName) : ''}</p></div>`));
+  add('OEBPS/intro.xhtml', xpage('角色', toX(introHTML())));
+  const chs = [];
+  for (let i = 0; i < b.chapters.length; i++) {
+    const c = chapterHTML(i), n = String(i + 1).padStart(3, '0'), file = `ch${n}.xhtml`;
+    let art = null;
+    if (S.bg) {
+      art = `ch${n}-art.xhtml`;
+      add(`OEBPS/ch${n}-art.jpg`, new Uint8Array(await (await chapterArt(i, c.title)).arrayBuffer()), 'image/jpeg');
+      add('OEBPS/' + art, xpage(c.title, `<div style="text-align:center;margin:0;padding:0"><img src="ch${n}-art.jpg" alt="${esc(c.title)}" style="max-width:100%;max-height:100vh"/></div>`));
+    }
+    add('OEBPS/' + file, xpage(c.title, `<section epub:type="chapter">${toX(c.html)}</section>`, cls));
+    chs.push({ file, art, title: c.title, i });
+  }
+  const first = tw(b.turns[0].time), last = tw(b.turns.at(-1).time);
+  const edited = Object.keys(S.edits).length;
+  add('OEBPS/colophon.xhtml', xpage('後記', `<div class="colophon"><h2>後 記</h2><p>${esc(m.title)}</p><p>${fmtDate(first)} — ${fmtDate(last)}</p>
+<p>收錄 ${b.turns.length} 頁對話${edited ? `，其中 ${edited} 頁經過編輯` : '原文，未經改寫'}</p><p>本書只收錄聊天畫面上看得到的內容，不含角色設定與後台指令</p><p class="orn">❦</p><p>裝訂 ${fmtDate(tw(new Date().toISOString()))} ・ 對話裝幀室</p></div>`));
+  add('OEBPS/style.css', bookCSS(p, st), 'text/css');
+  const toc = [{ file: 'intro.xhtml', title: '角色' }, ...chs.map(c => ({ file: c.file, title: `第${zh(c.i + 1)}章${c.title.startsWith('第') ? '' : '　' + c.title}` })), { file: 'colophon.xhtml', title: '後記' }];
+  add('OEBPS/nav.xhtml', xpage('目次', `<nav epub:type="toc" id="toc"><h2 style="text-align:center;letter-spacing:.4em;font-weight:normal">目 次</h2><ol>${toc.map(t => `<li><a href="${t.file}">${esc(t.title)}</a></li>`).join('')}</ol></nav>`));
+  const uid = 'urn:rp-book:' + crc32(new TextEncoder().encode(m.title + S.gem)).toString(16);
+  add('OEBPS/toc.ncx', `<?xml version="1.0" encoding="utf-8"?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="${uid}"/></head><docTitle><text>${esc(m.title)}</text></docTitle><navMap>
+${toc.map((t, i) => `<navPoint id="n${i}" playOrder="${i + 1}"><navLabel><text>${esc(t.title)}</text></navLabel><content src="${t.file}"/></navPoint>`).join('')}</navMap></ncx>`, 'application/x-dtbncx+xml');
+  const id = h => 'i_' + h.replace(/[^a-z0-9]/gi, '_');
+  const manifest = files.map(f => { const href = f.path.replace('OEBPS/', ''); const mime = f.mime || 'application/xhtml+xml';
+    const props = href === 'nav.xhtml' ? ' properties="nav"' : href === 'cover.jpg' ? ' properties="cover-image"' : '';
+    return `<item id="${id(href)}" href="${href}" media-type="${mime}"${props}/>`; }).join('\n');
+  const spine = ['cover.xhtml', 'title.xhtml', 'nav.xhtml', 'intro.xhtml', ...chs.flatMap(c => c.art ? [c.art, c.file] : [c.file]), 'colophon.xhtml'];
+  add('OEBPS/content.opf', `<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid" xml:lang="zh-TW">
+<metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="uid">${uid}</dc:identifier><dc:title>${esc(m.title)}</dc:title>
+<dc:creator>${esc(m.userName)}</dc:creator><dc:language>zh-TW</dc:language><meta property="dcterms:modified">${new Date().toISOString().replace(/\.\d+Z$/, 'Z')}</meta>
+<meta name="cover" content="${id('cover.jpg')}"/></metadata>
+<manifest>
+${manifest}
+<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+</manifest>
+<spine toc="ncx">${spine.map(f => `<itemref idref="${id(f)}"/>`).join('')}</spine></package>`, 'application/oebps-package+xml');
+  return zip([
+    { path: 'mimetype', data: 'application/epub+zip', store: true },
+    { path: 'META-INF/container.xml', data: `<?xml version="1.0" encoding="utf-8"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>` },
+    ...files.map(f => ({ path: f.path, data: f.data })),
+  ]);
+}
+
+// ───────── 事件 ─────────
+// 拖進來的是資料夾：往下找 json，挑名字像「我的活動」的那個（沒有就挑最大的）
+async function filesFromEntry(entry, out = []) {
+  if (entry.isFile) { if (/\.json$/i.test(entry.name)) out.push(await new Promise((ok, no) => entry.file(ok, no))); return out; }
+  if (entry.isDirectory) {
+    const reader = entry.createReader();
+    for (;;) { const batch = await new Promise((ok, no) => reader.readEntries(ok, no)); if (!batch.length) break; for (const e of batch) await filesFromEntry(e, out); }
+  }
+  return out;
+}
+function pickJson(files) {
+  const json = files.filter(f => /\.json$/i.test(f.name));
+  return json.find(f => /活動|activity/i.test(f.name)) || json.sort((a, b) => b.size - a.size)[0];
+}
+function noJson() { const msg = $('loadmsg'); msg.className = 'msg err'; msg.textContent = '這個資料夾裡沒有 json。要的是 Takeout 格式選 JSON 匯出的「Gemini Apps」資料夾。'; }
+async function readActivity(file) {
+  const msg = $('loadmsg'); msg.className = 'msg'; msg.textContent = `讀取 ${file.name}⋯`;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!Array.isArray(data)) throw new Error('shape');
+    const gems = listGems(data);
+    if (!gems.length) { msg.className = 'msg err'; msg.textContent = '這份檔案裡沒有找到用 Gem 聊的對話。確認是「我的活動 › Gemini Apps」裡的 JSON。'; return; }
+    S.activity = data; S.sample = false; S.cover = null;
+    msg.textContent = `讀好了：${data.length} 則活動、${gems.length} 位角色。`;
+    loadGems();
+  } catch {
+    msg.className = 'msg err'; msg.textContent = '讀不懂這個檔案。要放的是 Takeout 匯出、格式選 JSON 的「我的活動.json」。';
+  }
+}
+const drop = $('drop');
+drop.addEventListener('click', () => $('file').click());
+drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('file').click(); } });
+$('file').addEventListener('change', e => e.target.files[0] && readActivity(e.target.files[0]));
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', async e => {
+  e.preventDefault(); drop.classList.remove('over');
+  const entries = [...e.dataTransfer.items || []].map(i => i.webkitGetAsEntry?.()).filter(Boolean);
+  if (entries.some(en => en.isDirectory)) {
+    $('loadmsg').className = 'msg'; $('loadmsg').textContent = '在資料夾裡找對話紀錄⋯';
+    const files = []; for (const en of entries) await filesFromEntry(en, files);
+    const f = pickJson(files); return f ? readActivity(f) : noJson();
+  }
+  const f = e.dataTransfer.files[0]; if (f) readActivity(f);
+});
+$('pickfolder').addEventListener('click', () => $('folder').click());
+$('folder').addEventListener('change', e => { const f = pickJson([...e.target.files]); f ? readActivity(f) : noJson(); e.target.value = ''; });
+
+$('gem').addEventListener('change', pickGem);
+$('story').addEventListener('change', pickStory);
+for (const id of ['title', 'subtitle', 'username', 'intro']) $(id).addEventListener('input', () => {
+  renderCover(); renderCoverPrompt(); persistSoon(); if (S.view === -1 || id === 'username') renderBook(true); });
+$('tidy').addEventListener('change', () => { S.style.tidy = $('tidy').checked; persistSoon(); renderBook(true); });
+$('status').addEventListener('change', () => { S.style.showStatus = $('status').checked; persistSoon(); renderBook(true); });
+$('palettes').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; S.style.palette = b.dataset.p; S.cstyle.bg = ''; S.cstyle.ink = ''; syncControls(); persistSoon(); renderBook(true); renderCover(); bakeBg(); });
+for (const id of ['layout', 'font', 'opener']) $(id).addEventListener('change', () => { S.style[id] = $(id).value; persistSoon(); renderBook(true); });
+$('size').addEventListener('input', () => { S.style.size = Number($('size').value); $('sizev').textContent = S.style.size + 'px'; persistSoon(); renderBook(true); });
+$('lead').addEventListener('input', () => { S.style.lead = Number($('lead').value); $('leadv').textContent = S.style.lead.toFixed(2); persistSoon(); renderBook(true); });
+$('ctpl').addEventListener('change', () => { S.cstyle.tpl = $('ctpl').value; persistSoon(); renderCover(); });
+$('cfont').addEventListener('change', () => { S.cstyle.font = $('cfont').value; persistSoon(); renderCover(); });
+$('cbg').addEventListener('input', () => { S.cstyle.bg = $('cbg').value; persistSoon(); renderCover(); });
+$('cink').addEventListener('input', () => { S.cstyle.ink = $('cink').value; persistSoon(); renderCover(); });
+$('cts').addEventListener('input', () => { S.cstyle.size = Number($('cts').value); $('ctsv').textContent = S.cstyle.size; persistSoon(); renderCover(); });
+$('chapters').addEventListener('input', e => { const k = e.target.dataset.key; if (!k) return; S.chapterNames[k] = e.target.value.trim(); persistSoon(); if (S.view >= 0) renderBook(true); });
+$('editbtn').addEventListener('click', () => { S.editing = !S.editing; $('editbtn').setAttribute('aria-pressed', S.editing); $('editbtn').textContent = S.editing ? '編輯中' : '編輯文字'; renderBook(true); });
+document.querySelector('.deskbar').addEventListener('click', e => { const g = e.target.closest('[data-go]')?.dataset.go; if (!g) return;
+  // 上一章／下一章直接跳章，翻頁交給書底下的按鈕
+  const next = g === 'intro' ? -1 : S.view + (g === 'next' ? 1 : -1);
+  if (next < -1 || next >= S.book.chapters.length) return;
+  S.view = next; renderBook(); });
+let searchTimer; $('q').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => search($('q').value), 250); });
+$('q').addEventListener('keydown', e => { if (e.key === 'Escape') { $('q').value = ''; search(''); } });
+$('hits').addEventListener('click', e => { const k = e.target.closest('[data-k]')?.dataset.k; if (k === undefined) return;
+  const h = hits[k]; hl = $('q').value.trim(); jumpTo = { t: h.t, n: h.n }; S.view = h.i; renderBook(); });
+$('pgprev').addEventListener('click', () => step(-1));
+function rechapter(focus) {
+  S.book.chapters = chaptersOf(S.book.turns);
+  if (focus) { S.view = Math.max(0, S.book.chapters.findIndex(c => c.some(t => t.time === focus))); jumpTo = { t: focus, n: 0 }; }
+  else S.view = Math.min(S.view, S.book.chapters.length - 1);
+  syncControls(); renderChapters(); persistSoon(); renderBook(); renderCover();
+}
+$('chmode').addEventListener('change', () => {
+  S.style.chapterMode = $('chmode').value;
+  // 第一次改成自己切：先照原本的分法切好，再讓她自己調
+  if (S.style.chapterMode === 'manual' && !Object.keys(S.breaks).length) chaptersOf(S.book.turns, { ...S.style, chapterMode: 'time' }).slice(1).forEach(c => { S.breaks[c[0].time] = true; });
+  rechapter();
+});
+$('chnum').addEventListener('change', () => {
+  const v = Math.max(1, Number($('chnum').value) || 1);
+  if (S.style.chapterMode === 'pages') S.style.chapterPages = Math.round(v); else S.style.chapterHours = v;
+  rechapter();
+});
+$('flow').addEventListener('click', e => { const t = e.target.closest('[data-cut]')?.dataset.cut; if (!t) return;
+  if (S.breaks[t]) delete S.breaks[t]; else S.breaks[t] = true; rechapter(t); });
+if (matchMedia('(max-width: 860px)').matches) document.querySelectorAll('.step').forEach((el, i) => { if (i >= 2) el.classList.add('closed'); });
+$('order').addEventListener('click', e => { const h = e.target.closest('.step > h2'); if (h) h.parentElement.classList.toggle('closed'); });
+$('pgnext').addEventListener('click', () => step(1));
+$('leaf').addEventListener('keydown', e => { if (e.target.isContentEditable) return; if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); });
+$('leaf').tabIndex = 0;
+let resizeTimer; window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => renderBook(true), 150); });
+
+$('copyprompt').addEventListener('click', async () => {
+  const t = $('coverprompt').textContent;
+  try { await navigator.clipboard.writeText(t); $('copyprompt').textContent = '已複製'; }
+  catch { const r = document.createRange(); r.selectNodeContents($('coverprompt')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $('copyprompt').textContent = '已選取，按複製'; }
+  setTimeout(() => $('copyprompt').textContent = '複製封面咒語', 1800);
+});
+$('pickcover').addEventListener('click', () => $('coverfile').click());
+$('coverfile').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const url = URL.createObjectURL(f), img = new Image();
+  img.onload = () => { if (S.cover) URL.revokeObjectURL(S.cover.url); S.cover = { url, img }; if (S.cstyle.tpl === 'frame') { S.cstyle.tpl = 'full'; $('ctpl').value = 'full'; } renderCover(); };
+  img.onerror = () => { URL.revokeObjectURL(url); $('makemsg').className = 'msg err'; $('makemsg').textContent = '這張圖打不開，換 PNG 或 JPG 試試。'; };
+  img.src = url; e.target.value = '';
+});
+$('clearcover').addEventListener('click', () => { if (S.cover) URL.revokeObjectURL(S.cover.url); S.cover = null; renderCover(); });
+$('pickbg').addEventListener('click', () => $('bgfile').click());
+$('bgfile').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const url = URL.createObjectURL(f), img = new Image();
+  img.onload = () => { if (S.bg) URL.revokeObjectURL(S.bg.url); S.bg = { url, img }; bakeBg(); };
+  img.onerror = () => URL.revokeObjectURL(url);
+  img.src = url; e.target.value = '';
+});
+$('clearbg').addEventListener('click', () => { if (S.bg) URL.revokeObjectURL(S.bg.url); S.bg = null; bakeBg(); });
+$('bgfade').addEventListener('input', () => { S.style.bgFade = Number($('bgfade').value); persistSoon(); bakeBg(); });
+
+let downloads = null;
+async function deliver(blob, name, msg) {
+  if (downloads) {
+    try { await downloads.save({ filename: name, data: blob }); msg.textContent = `《${meta().title}》裝好了。`; }
+    catch (err) { msg.className = err?.code === 'declined' ? 'msg' : 'msg err';
+      msg.textContent = err?.code === 'declined' ? '沒有下載。想要的時候再按一次。' : '這個畫面沒辦法下載檔案，換用瀏覽器直接開這個網頁試試。'; }
+  } else {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    msg.textContent = `《${meta().title}》裝好了，檢查一下下載資料夾。`;
+  }
+}
+const fileName = ext => (meta().title || 'book').replace(/[\\/:*?"<>|]/g, '') + ext;
+$('makeprint').addEventListener('click', async () => {
+  const msg = $('makemsg'); msg.className = 'msg';
+  if (!S.book?.turns.length) { msg.className = 'msg err'; msg.textContent = '先選一位有對話的角色。'; return; }
+  $('makeprint').disabled = true; msg.textContent = '排版中⋯';
+  try { await deliver(await buildPrint(), fileName('.html'), msg); } catch (err) { msg.className = 'msg err'; msg.textContent = '排版失敗：' + (err?.message || err); }
+  $('makeprint').disabled = false;
+});
+if (window.claude?.use) window.claude.use('downloads').then(d => { downloads = d; }).catch(() => {});
+$('order').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = $('makemsg'); msg.className = 'msg';
+  if (!S.book?.turns.length) { msg.className = 'msg err'; msg.textContent = '先選一位有對話的角色。'; return; }
+  $('make').disabled = true; msg.textContent = '裝訂中⋯';
+  try {
+    await deliver(await buildEpub(), fileName('.epub'), msg);
+  } catch (err) { msg.className = 'msg err'; msg.textContent = '裝訂失敗：' + (err?.message || err); }
+  $('make').disabled = false;
+});
+
+loadGems();
+document.fonts?.ready.then(() => renderCover());
+})();
+</script>
+
+</body>
+</html>
