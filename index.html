@@ -502,8 +502,9 @@ function tavernToActivity(text, fileName = '') {
 const looksTavern = text => /^\s*\{/.test(text) && /"mes"\s*:/.test(text);
 
 // ───────── 讀檔與挑對話 ─────────
-const SKIP_TITLE = /^(Created|Selected|Branched|Gave|Used|Viewed|Searched|Deleted|已建立|已選取|已刪除)\b/;
-const PROMPT_PREFIX = /^(Prompted|You said|已提示|提示了?|已詢問|詢問了?)\s*/;
+// 「Branched …」是分支對話裡的提問（9/30 脆上那位 1,238 則全是這種），不是要跳過的事件；沒回覆的會被後面 t.html 那關擋掉
+const SKIP_TITLE = /^(Created|Selected|Gave|Used|Viewed|Searched|Deleted|已建立|已選取|已刪除)\b/;
+const PROMPT_PREFIX = /^(Prompted|Branched|You said|已提示|提示了?|已詢問|詢問了?|已分支)\s*/;
 const gemOf = x => {
   const s = (x.subtitles || []).find(s => /gemini\.google\.com\/(gems|notebooks)/.test(s.url || '') || / was used in this/.test(s.name || ''));
   return s ? (s.name || '').replace(/\s*(was used in this[\s\S]*|已在[\s\S]*|在這段對話[\s\S]*)$/, '').trim() : '';
