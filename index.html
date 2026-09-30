@@ -188,8 +188,8 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
         <p class="hint">到 takeout.google.com，只勾「我的活動」，格式選 JSON（已經匯成 HTML 的也可以，直接放進來）。解壓後在「我的活動」裡找到 <b>Gemini Apps</b> 資料夾，整個拖進來就好。<br>
           <b>不要勾「Gemini」那一項</b>，那是 Gem 的名稱與指令，是創作者的後台，這裡用不到也不讀。</p>
         <div class="drop" id="drop" tabindex="0" role="button" aria-label="選擇或拖入我的活動.json 或 MyActivity.html">
-          把 <b>Gemini Apps 資料夾</b>或裡面的 <b>json</b>／<b>html</b> 拖進來，或點這裡選檔案
-          <input type="file" id="file" accept=".json,.html,.htm,application/json,text/html" hidden>
+          把 <b>Gemini Apps 資料夾</b>或裡面的 <b>json</b>／<b>html</b> 拖進來，或點這裡選檔案。酒館（SillyTavern）匯出的 <b>jsonl</b> 也可以
+          <input type="file" id="file" accept=".json,.jsonl,.html,.htm,application/json,text/html" hidden>
           <input type="file" id="folder" webkitdirectory hidden>
         </div>
         <button type="button" class="btn ghost" id="pickfolder" style="justify-self:start">選整個資料夾</button>
@@ -420,6 +420,52 @@ function htmlPeek(html) {
   const body = at < 0 ? cells[0] : cells[0].slice(at);
   return `格子有 ${cells.length} 個，第一格是：「${unent(stripTags(body.replace(/<br\s*\/?>/gi, ' ⏎ '))).replace(/\s+/g, ' ').trim().slice(0, 160)}」`;
 }
+// ───────── 酒館（SillyTavern）匯出的對話也吃（2026-09-30，露比問的）─────────
+// 酒館「匯出聊天」是 JSONL：第一行是檔頭（user_name／character_name／create_date），之後一行一則
+// （name／is_user／is_system／send_date／mes，mes 是 Markdown）。這裡把「妳的一則＋角色的一則」配成一頁，
+// 轉回跟 Takeout JSON 一樣的形狀，後面全部共用。角色名當 Gem 名。網頁版與指令版這段要一模一樣
+const escT = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// 酒館的 Markdown → 簡單 HTML：段落、粗體、斜體、行內程式碼；其他原樣留著
+function mdToHtml(md) {
+  const inline = s => escT(s).replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>').replace(/`([^`\n]+?)`/g, '<code>$1</code>');
+  return String(md || '').replace(/\r\n?/g, '\n').replace(/^[ \t]*(-{3,}|_{3,}|\*{3,})[ \t]*$/gm, '\n<hr>\n').split(/\n{2,}/).map(p => p.trim()).filter(Boolean)
+    .map(p => p === '<hr>' ? '<hr>' : `<p>${p.split('\n').map(inline).join('<br>')}</p>`).join('');
+}
+// 酒館的時間：數字（毫秒）、「2026-9-28 @22h 10m 15s 123ms」、ISO 字串；沒時區的當台灣
+function tavernTime(v, fallback) {
+  if (typeof v === 'number' && v > 1e11) return new Date(v).toISOString();
+  const s = String(v || '');
+  let m = s.match(/(\d{4})-(\d{1,2})-(\d{1,2})\s*@\s*(\d{1,2})h\s*(\d{1,2})m\s*(\d{1,2})s/);
+  if (m) return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) - 8 * 3600e3).toISOString();
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?$/);
+  if (m) return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)) - 8 * 3600e3).toISOString();
+  const t = Date.parse(s);
+  if (!isNaN(t)) return new Date(t).toISOString();
+  return fallback;
+}
+function tavernToActivity(text, fileName = '') {
+  const rows = String(text).split('\n').map(l => l.trim()).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  if (!rows.length) return [];
+  let character = '', user = '我', base = Date.now() - rows.length * 60e3;
+  if (rows[0] && !('mes' in rows[0]) && (rows[0].character_name || rows[0].user_name)) {
+    character = rows[0].character_name || ''; user = rows[0].user_name || user;
+    base = Date.parse(tavernTime(rows[0].create_date, null) || '') || base; rows.shift();
+  }
+  if (!character) character = (rows.find(r => r && r.is_user === false && r.name) || {}).name || fileName.replace(/\.[^.]+$/, '') || '角色';
+  const out = []; let pendingUser = null, lastTime = base, i = 0;
+  for (const r of rows) {
+    if (!r || typeof r.mes !== 'string' || r.is_system) continue;
+    i++;
+    const time = tavernTime(r.send_date, new Date(lastTime + i * 1000).toISOString()); lastTime = Date.parse(time) || lastTime;
+    if (r.is_user) { pendingUser = (pendingUser ? pendingUser + '\n' : '') + r.mes; continue; }
+    out.push({ header: 'Gemini Apps', title: 'Prompted ' + (pendingUser || ''), time,
+      subtitles: [{ name: character + ' was used in this chat. Manage your Gems.', url: 'https://gemini.google.com/gems/view' }],
+      details: [], safeHtmlItem: [{ html: mdToHtml(r.mes) }], tavern: { user } });
+    pendingUser = null;
+  }
+  return out;
+}
+const looksTavern = text => /^\s*\{/.test(text) && /"mes"\s*:/.test(text);
 
 // ───────── 讀檔與挑對話 ─────────
 const SKIP_TITLE = /^(Created|Selected|Branched|Gave|Used|Viewed|Searched|Deleted|已建立|已選取|已刪除)\b/;
@@ -476,7 +522,7 @@ function collect(activity, gem) {
     .map(x => {
       const html = (x.safeHtmlItem || []).map(s => s.html || '').join('\n');
       const user = (x.title || '').replace(PROMPT_PREFIX, '');
-      return { time: x.time, user, html, page: pageOf(html), meta: isMeta(user) || RANGE.test(user), summary: RANGE.test(plainish(html)), card: /角色卡/.test(user.slice(0, 40)) };
+      return { time: x.time, user, html, page: pageOf(html), meta: isMeta(user) || RANGE.test(user), summary: RANGE.test(plainish(html)), card: /角色卡/.test(user.slice(0, 40)), tavernUser: x.tavern?.user || '' };
     }).filter(t => t.html && !t.summary).sort((a, b) => (a.time < b.time ? -1 : 1));
   const total = turns.length;
   const paged = turns.filter(t => t.page).length >= turns.length * 0.5;
@@ -656,7 +702,7 @@ function pickStory() {
   S.book.chapters = chaptersOf(turns);
   $('title').value = saved?.title ?? (S.sample ? '雨天的書店' : bare(S.gem));
   $('subtitle').value = saved?.subtitle ?? (S.sample ? '弗萊明 × 我' : '');
-  $('username').value = saved?.username ?? '';
+  $('username').value = saved?.username ?? (turns[0]?.tavernUser || '');
   $('intro').value = saved?.intro ?? (S.sample ? '只在下雨天出現在二手書店的人。讀村上的遊記，會把筆記本的邊角對齊桌緣。\n這是一本示範書，角色與故事都是虛構的。' : '');
   const b = S.book;
   $('stats').innerHTML = b.turns.length
@@ -1023,7 +1069,7 @@ ${manifest}
 // ───────── 事件 ─────────
 // 拖進來的是資料夾：往下找 json（沒有就找 html），挑名字像「我的活動」的那個（沒有就挑最大的）
 async function filesFromEntry(entry, out = []) {
-  if (entry.isFile) { if (/\.(json|html?)$/i.test(entry.name)) out.push(await new Promise((ok, no) => entry.file(ok, no))); return out; }
+  if (entry.isFile) { if (/\.(jsonl?|html?)$/i.test(entry.name)) out.push(await new Promise((ok, no) => entry.file(ok, no))); return out; }
   if (entry.isDirectory) {
     const reader = entry.createReader();
     for (;;) { const batch = await new Promise((ok, no) => reader.readEntries(ok, no)); if (!batch.length) break; for (const e of batch) await filesFromEntry(e, out); }
@@ -1032,7 +1078,7 @@ async function filesFromEntry(entry, out = []) {
 }
 function pickJson(files) {
   const pick = list => list.find(f => /活動|activity/i.test(f.name)) || list.sort((a, b) => b.size - a.size)[0];
-  return pick(files.filter(f => /\.json$/i.test(f.name))) || pick(files.filter(f => /\.html?$/i.test(f.name)));
+  return pick(files.filter(f => /\.json$/i.test(f.name))) || pick(files.filter(f => /\.html?$/i.test(f.name))) || pick(files.filter(f => /\.jsonl$/i.test(f.name)));
 }
 function noJson() { const msg = $('loadmsg'); msg.className = 'msg err'; msg.textContent = '這個資料夾裡沒有 json 也沒有 html。要的是 Takeout 匯出的「Gemini Apps」資料夾。'; }
 async function readActivity(file) {
@@ -1040,7 +1086,7 @@ async function readActivity(file) {
   try {
     const text = await file.text();
     const isHtml = /^\s*</.test(text);
-    const data = isHtml ? htmlToActivity(text) : JSON.parse(text);
+    const data = isHtml ? htmlToActivity(text) : looksTavern(text) ? tavernToActivity(text, file.name) : JSON.parse(text);
     if (isHtml && !data.length) { msg.className = 'msg err'; msg.textContent = '這份 HTML 的格子我認不出來。' + htmlPeek(text) + '。把這段截圖給裝幀室的人，就能對出來。'; return; }
     if (!Array.isArray(data) || !data.length) throw new Error('shape');
     const gems = listGems(data);
@@ -1049,7 +1095,7 @@ async function readActivity(file) {
     msg.textContent = `讀好了：${data.length} 則活動、${gems.length} 位角色。`;
     loadGems();
   } catch {
-    msg.className = 'msg err'; msg.textContent = '讀不懂這個檔案。要放的是 Takeout 匯出的「我的活動.json」或「MyActivity.html」。';
+    msg.className = 'msg err'; msg.textContent = '讀不懂這個檔案。要放的是 Takeout 匯出的「我的活動.json」「MyActivity.html」，或酒館匯出的 .jsonl。';
   }
 }
 const drop = $('drop');
