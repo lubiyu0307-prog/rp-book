@@ -279,9 +279,9 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
 
       <section class="step">
         <h2><span class="n">STEP 7</span>裝訂</h2>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="submit" class="btn" id="make">下載 EPUB</button><button type="button" class="btn ghost" id="makeprint">下載可列印版（存成 PDF）</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="submit" class="btn" id="make">下載 EPUB</button><button type="button" class="btn ghost" id="makeprint">下載隨身閱讀版（.html）</button></div>
         <p class="msg" id="makemsg"></p>
-        <p class="hint">EPUB 用 iPhone／Mac 的「書籍」、Google Play 圖書、Kobo 打開，字型和顏色會照閱讀器的設定走；書頁照片在 EPUB 裡會變成每章開頭的插圖頁。<br>想要跟右邊預覽一模一樣（字型、照片都在），用「可列印版」：用瀏覽器打開，按「存成 PDF」。<br>Windows 沒有內建 EPUB 閱讀器，要裝 Calibre、Thorium，或上傳到 Google Play 圖書；不想裝的話用可列印版就好。<br>之後還有新的對話，重新匯出一次、用同樣的書名與章名再裝訂，新的章節會接在最後面。</p>
+        <p class="hint">EPUB 用 iPhone／Mac 的「書籍」、Google Play 圖書、Kobo 打開，字型和顏色會照閱讀器的設定走；書頁照片在 EPUB 裡會變成每章開頭的插圖頁。<br>沒有書籍 app 也想看：用「隨身閱讀版」，一個 .html 檔，手機、電腦任何瀏覽器點開就是書，離線也行，有目錄、字級、夜間模式，看到哪會記住；跟右邊預覽一模一樣（字型、照片都在）。想要 PDF 就從那個檔按右上的 PDF、存成 PDF。<br>Windows 沒有內建 EPUB 閱讀器，要裝 Calibre、Thorium，或上傳到 Google Play 圖書；不想裝的話用隨身閱讀版就好。<br>之後還有新的對話，重新匯出一次、用同樣的書名與章名再裝訂，新的章節會接在最後面。</p>
       </section>
     </form>
 
@@ -986,34 +986,72 @@ async function chapterArt(i, title) {
   return new Promise(ok => cv.toBlob(ok, 'image/jpeg', 0.88));
 }
 const blobURL = blob => new Promise(ok => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.readAsDataURL(blob); });
-// 可列印版：一個自己能開的網頁，字型、照片、排版都照預覽，瀏覽器列印時選「存成 PDF」
+// 隨身閱讀版：一個自己能開的 .html，手機、電腦任何瀏覽器點開就是書，離線也行。
+// 有目錄、上一章下一章、字級、夜間模式，看到哪會記住；瀏覽器列印時選「存成 PDF」也照樣是列印版
 async function buildPrint() {
   const m = meta(), b = S.book, p = pal(), st = S.style, cls = `lay-${st.layout} op-${st.opener}`;
   await renderCover();
   const cover = $('cover').toDataURL('image/jpeg', 0.9), bg = S.bgBaked ? await blobURL(S.bgBaked.blob) : '';
   const fonts = [...document.querySelectorAll('link[rel=stylesheet][href*="fonts.googleapis"]')].map(l => l.outerHTML).join('\n');
-  const chs = b.chapters.map((_, i) => `<section class="ch">${toX(chapterHTML(i).html)}</section>`).join('\n');
+  const night = PALETTES.night;
+  const chs = b.chapters.map((_, i) => { const c = chapterHTML(i); return { title: c.title, html: `<section class="ch" id="ch${i + 1}">${toX(c.html)}<nav class="chnav">${i > 0 ? `<a href="#ch${i}">‹ 上一章</a>` : '<span></span>'}<a href="#top">目錄</a>${i < b.chapters.length - 1 ? `<a href="#ch${i + 2}">下一章 ›</a>` : '<span></span>'}</nav></section>` }; });
+  const vars = { paper: 'var(--paper)', ink: 'var(--ink)', accent: 'var(--accent)', soft: 'var(--soft)', muted: 'var(--muted)' };
+  const key = 'rp-reader:' + m.title;
   return new Blob([`<!doctype html>
-<html lang="zh-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(m.title)}</title>
+<html lang="zh-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${esc(m.title)}</title>
+<meta name="theme-color" content="${p.paper}">
 ${fonts}
-<style>${bookCSS(p, st, WEBFONT[st.font])}
-@page{size:A5;margin:16mm 14mm}
-html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-html{background:${p.paper}}
-body{max-width:34em;margin:0 auto;padding:1.5em 24px 4em}
+<style>
+:root{--paper:${p.paper};--ink:${p.ink};--accent:${p.accent};--soft:${p.soft};--muted:${p.muted};--size:${st.size}px}
+html.night{--paper:${night.paper};--ink:${night.ink};--accent:${night.accent};--soft:${night.soft};--muted:${night.muted}}
+${bookCSS(vars, st, WEBFONT[st.font])}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{font-size:var(--size);max-width:34em;margin:0 auto;padding:0 24px 6em;padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right))}
 .pagebg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
-.coverpage img{display:block;width:100%;max-width:26em;margin:0 auto}
-.coverpage,.titlepage,.intro{break-after:page}
-.bar{position:sticky;top:0;z-index:1;display:flex;gap:12px;align-items:center;justify-content:space-between;background:${p.paper};border-bottom:1px solid ${p.soft};padding:10px 0;margin-bottom:2em;font-size:.85em;color:${p.muted}}
-.bar button{font:inherit;border:0;border-radius:6px;padding:8px 14px;background:${p.accent};color:${p.paper};cursor:pointer}
-@media print{body{max-width:none;padding:0 1.6em}.bar{display:none}}
+html.night .pagebg{opacity:.25}
+.coverpage img{display:block;width:100%;max-width:22em;margin:1.5em auto 0;border-radius:3px 8px 8px 3px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:6px;align-items:center;background:var(--paper);border-bottom:1px solid var(--soft);padding:8px 0;margin:0 0 1.5em;font-size:14px;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;padding-top:max(8px,env(safe-area-inset-top))}
+.bar .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:13px}
+.bar button{font:inherit;border:1px solid var(--soft);border-radius:6px;padding:5px 9px;background:transparent;color:var(--ink);cursor:pointer;line-height:1}
+.bar button.p{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.toc{position:fixed;inset:0;z-index:3;background:var(--paper);overflow:auto;padding:1.5em 24px 4em;display:none;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif}
+.toc.on{display:block}
+.toc h2{font-size:1em;letter-spacing:.4em;color:var(--accent);text-align:center;font-weight:normal;margin:.5em 0 1.5em}
+.toc a{display:block;color:var(--ink);text-decoration:none;padding:.7em 0;border-bottom:1px solid var(--soft)}
+.toc a small{color:var(--muted);margin-left:.6em}
+.toc .x{position:absolute;top:12px;right:16px;font-size:22px;background:none;border:0;color:var(--muted);cursor:pointer}
+.chnav{display:flex;justify-content:space-between;gap:1em;margin:3em 0 1em;font-size:.85em;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif}
+.chnav a{color:var(--accent);text-decoration:none}
+.tip{font-size:.8em;color:var(--muted);text-align:center;margin:0 0 2em;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif}
+@page{size:A5;margin:16mm 14mm}
+@media print{html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{max-width:none;padding:0 1.6em}.bar,.toc,.chnav,.tip{display:none!important}.coverpage,.titlepage,.intro{break-after:page}.coverpage img{box-shadow:none;border-radius:0;max-width:26em;margin:0 auto}}
 </style></head>
 <body class="${cls}">${bg ? `<img class="pagebg" src="${bg}" alt="">` : ''}
-<div class="bar"><span>電腦：列印時目的地選「存成 PDF」，勾選「背景圖形」、取消「頁首和頁尾」（不然每頁會印日期跟網址）<br>iPhone：按鈕後在預覽上兩指放大，再從分享存到「檔案」</span><button type="button" onclick="print()">存成 PDF</button></div>
+<a id="top"></a>
+<div class="bar"><span class="t">${esc(m.title)}</span><button type="button" data-do="toc">目錄</button><button type="button" data-do="minus">A−</button><button type="button" data-do="plus">A＋</button><button type="button" data-do="night">夜</button><button type="button" class="p" data-do="print">PDF</button></div>
+<div class="toc" id="toc"><button type="button" class="x" data-do="toc" aria-label="關閉">×</button><h2>目 次</h2><a href="#intro">角色</a>${chs.map((c, i) => `<a href="#ch${i + 1}">第${zh(i + 1)}章<small>${esc(c.title.startsWith('第') ? '' : c.title)}</small></a>`).join('')}</div>
 <div class="coverpage"><img src="${cover}" alt="${esc(m.title)}"></div>
 <div class="titlepage"><h1>${esc(m.title)}</h1><p class="sub">${esc(m.subtitle)}</p><p class="orn">❦</p><p class="by">${esc(m.character)}${m.userName ? ' ・ ' + esc(m.userName) : ''}</p></div>
-${toX(introHTML())}
-${chs}
+<p class="tip">這個檔案就是整本書，離線也能看。看到哪會記住，下次打開接著看。想要 PDF：按右上的 PDF，目的地選「存成 PDF」、勾「背景圖形」、取消「頁首和頁尾」。</p>
+<a id="intro"></a>${toX(introHTML())}
+${chs.map(c => c.html).join('\n')}
+<script>
+(function(){
+  var K=${JSON.stringify(key)}, H=document.documentElement, S={};
+  try{S=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
+  if(S.size)H.style.setProperty('--size',S.size+'px'); if(S.night)H.classList.add('night');
+  function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+  function size(d){var v=parseFloat(getComputedStyle(H).getPropertyValue('--size'))||${st.size};v=Math.min(26,Math.max(12,v+d));H.style.setProperty('--size',v+'px');S.size=v;save()}
+  document.addEventListener('click',function(e){var b=e.target.closest('[data-do]');if(!b)return;var d=b.getAttribute('data-do');
+    if(d==='toc')document.getElementById('toc').classList.toggle('on');
+    else if(d==='minus')size(-1);else if(d==='plus')size(1);
+    else if(d==='night'){H.classList.toggle('night');S.night=H.classList.contains('night');save()}
+    else if(d==='print')print()});
+  document.getElementById('toc').addEventListener('click',function(e){if(e.target.closest('a'))document.getElementById('toc').classList.remove('on')});
+  var t;addEventListener('scroll',function(){clearTimeout(t);t=setTimeout(function(){S.y=scrollY;S.h=document.body.scrollHeight;save()},300)},{passive:true});
+  if(S.y&&!location.hash){var tries=0,go=function(){if(document.body.scrollHeight>=S.y+innerHeight||tries++>20){scrollTo(0,S.y)}else setTimeout(go,150)};setTimeout(go,50)}
+})();
+<\/script>
 </body></html>`], { type: 'text/html' });
 }
 async function buildEpub() {
