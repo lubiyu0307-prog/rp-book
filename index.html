@@ -649,7 +649,7 @@ const bare = s => s.replace(/[\p{Extended_Pictographic}️‍]/gu, '').trim();
 const $ = id => document.getElementById(id);
 const DEFAULT_STYLE = { palette: 'sea', layout: 'rule', font: 'serif', size: 15.5, lead: 1.95, opener: 'center', showStatus: true, tidy: true, bgFade: 0.8, chapterMode: 'time', chapterHours: 4, chapterPages: 20 };
 // Gemini 有時會多吐句號：整段只有一個「。」、「。。」、段落第一個字是「。」。原文就是這樣，清掉是排版上的選擇
-const tidy = html => html.replace(/<p>\s*[。．.」』、，*\s]+\s*<\/p>/g, '').replace(/<pre>\s*<code>\s*[。．.」』\s]*<\/code>\s*<\/pre>/g, '').replace(/\*\*([^*<>]+?)\*\*/g, '<strong>$1</strong>').replace(/\*\*/g, '').replace(/。{2,}/g, '。').replace(/<p>\s*。+/g, '<p>');
+const tidy = html => html.replace(/<p>\s*[。．.」』、，*\s]+\s*<\/p>/g, '').replace(/<pre>\s*<code>\s*[。．.」』\s]*<\/code>\s*<\/pre>/g, '').replace(/\*\*([^*<>]+?)\*\*/g, '<strong>$1</strong>').replace(/\*\*/g, '').replace(/。{2,}/g, '。').replace(/<p>\s*。+/g, '<p>').replace(/<\/p>\s*<p>\s*([，、,])/g, '$1').replace(/<p>\s*[，、,]+/g, '<p>');
 const DEFAULT_COVER = { tpl: 'frame', font: 'kai', bg: '', ink: '', size: 150 };
 const S = { activity: SAMPLE, sample: true, gem: '', book: null, cover: null, bg: null, bgBaked: null, breaks: {}, chapterNames: {}, edits: {},
   style: { ...DEFAULT_STYLE }, cstyle: { ...DEFAULT_COVER }, view: 0, editing: false };
