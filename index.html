@@ -174,12 +174,22 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
 .hit mark, .flow mark { background: color-mix(in srgb, var(--gilt) 35%, transparent); color: inherit; border-radius: 2px; }
 @media (prefers-reduced-motion: no-preference) { .flow { scroll-behavior: smooth; } }
 /* 書櫃：做好的書留在這台瀏覽器裡，點進去就翻 */
-.shelfgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 14px 12px; }
-.shelfitem { display: grid; gap: 4px; font-size: .76rem; color: var(--muted); }
-.shelfitem img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 2px 5px 5px 2px; box-shadow: var(--shadow); cursor: pointer; background: var(--cloth); }
+.shelfbar { margin: -6px 0 26px; }
+.shelfbar h2 { font-family: var(--display); font-size: 1.05rem; margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.shelfbar h2 .n { font-family: var(--ui); font-size: .72rem; letter-spacing: .12em; color: var(--gilt); font-weight: 500; }
+.shelfbar h2 small { font-family: var(--ui); font-weight: 400; font-size: .78rem; color: var(--muted); }
+.shelfwrap { position: relative; padding-bottom: 16px; }
+.shelfgrid { display: flex; gap: 26px; align-items: flex-end; overflow-x: auto; padding: 16px 22px 0; scroll-snap-type: x proximity; scrollbar-width: thin; }
+.shelfboard { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; border-radius: 2px; background: linear-gradient(180deg, color-mix(in srgb, var(--cloth) 85%, white) 0%, var(--cloth) 30%, color-mix(in srgb, var(--cloth) 60%, black) 100%); box-shadow: 0 10px 18px rgba(0,0,0,.28); }
+.shelfboard::before { content: ""; position: absolute; left: 0; right: 0; top: -6px; height: 6px; background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.18)); }
+.shelfitem { flex: 0 0 118px; width: 118px; scroll-snap-align: start; display: grid; gap: 5px; font-size: .74rem; color: var(--muted); text-align: center; padding-bottom: 8px; }
+.shelfitem img { width: 118px; height: 177px; object-fit: cover; border-radius: 2px 6px 6px 2px; background: var(--cloth); cursor: pointer; display: block;
+  box-shadow: -8px 8px 16px rgba(0,0,0,.28), inset 5px 0 7px -5px rgba(0,0,0,.45); transition: transform .18s ease, box-shadow .18s ease; }
+.shelfitem img:hover { transform: translateY(-8px) rotate(-1deg); box-shadow: -12px 16px 24px rgba(0,0,0,.32), inset 5px 0 7px -5px rgba(0,0,0,.45); }
 .shelfitem b { color: var(--ink); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.shelfitem .ops { display: flex; gap: 8px; }
-.shelfitem .ops button { font: inherit; font-size: .72rem; background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; text-decoration: underline; }
+.shelfitem .ops { display: flex; gap: 10px; justify-content: center; }
+.shelfitem .ops button { font: inherit; font-size: .7rem; background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; text-decoration: underline; }
+.shelfitem .ops button:hover { color: var(--gilt); }
 .readerwrap { position: fixed; inset: 0; z-index: 50; background: var(--paper); display: grid; grid-template-rows: auto 1fr; }
 .readerbar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top)); border-bottom: 1px solid var(--line); font-size: .9rem; background: var(--panel); }
 .readerbar button { font: inherit; border: 0; background: none; color: var(--cloth); cursor: pointer; padding: 4px 6px; }
@@ -193,13 +203,13 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
     <p>把跟角色的整段故事，裝訂成一本能放上書架的電子書。全程在妳的瀏覽器裡做，檔案不會上傳到任何地方。<a href="guide.html" style="color:var(--gilt);margin-left:.5em">看使用指南 ›</a></p>
   </header>
 
+  <section class="shelfbar" id="shelfstep" hidden>
+    <h2><span class="n">書櫃</span><span id="shelfcount">做好的書</span><small>留在這台裝置的瀏覽器裡，點封面就翻，看到哪會記住；換裝置或清掉瀏覽資料就沒了，想留久一點也下載一份。</small></h2>
+    <div class="shelfwrap"><div class="shelfgrid" id="shelfgrid"></div><div class="shelfboard"></div></div>
+  </section>
+
   <div class="grid">
     <form class="order" id="order" autocomplete="off">
-      <section class="step" id="shelfstep" hidden>
-        <h2><span class="n">書櫃</span><span id="shelfcount">做好的書</span></h2>
-        <p class="hint">留在這台裝置的瀏覽器裡，點封面就翻，看到哪會記住。換裝置或清掉瀏覽資料就沒了，想留久一點記得也下載一份。</p>
-        <div class="shelfgrid" id="shelfgrid"></div>
-      </section>
       <section class="step">
         <h2><span class="n">STEP 1</span>放入對話紀錄</h2>
         <p class="hint">到 takeout.google.com，只勾「我的活動」，格式選 JSON（已經匯成 HTML 的也可以，直接放進來）。解壓後在「我的活動」裡找到 <b>Gemini Apps</b> 資料夾，整個拖進來就好。<br>
