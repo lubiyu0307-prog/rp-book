@@ -1068,17 +1068,18 @@ html.book .titlepage{margin-top:22%}
 html.book .foot{display:flex;justify-content:space-between;align-items:center;padding:8px 24px;padding-bottom:max(8px,env(safe-area-inset-bottom));font-size:13px;color:var(--muted);font-family:var(--ui);border-top:1px solid var(--soft)}
 html.book .foot button{font:inherit;border:0;background:none;color:var(--accent);cursor:pointer;padding:4px 8px}
 html.book .foot button:disabled{opacity:.3;cursor:default}
+@media (max-width:699px){html.book .flow{column-count:1}html.book .leaf::before{display:none}html.book .leaf{padding:1.6em 20px 1.2em}}
 @page{size:A5;margin:16mm 14mm}
 @media print{html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact;height:auto;overflow:visible;display:block}body{max-width:none;padding:0 1.6em}.bar,.toc,.chnav,.tip,.foot{display:none!important}.leaf{height:auto;padding:0;max-width:none}.leaf::before{display:none}.flow{column-count:auto;height:auto;overflow:visible}.ch{display:block!important}.coverpage,.titlepage,.intro{break-after:page}.coverpage img{box-shadow:none;border-radius:0;max-width:26em;margin:0 auto}}
 </style></head>
 <body class="${cls}">${bg ? `<img class="pagebg" src="${bg}" alt="">` : ''}
-<div class="bar"><span class="t">${esc(m.title)}</span><button type="button" data-do="toc">目錄</button><button type="button" data-do="minus">A−</button><button type="button" data-do="plus">A＋</button><button type="button" data-do="night">夜</button><button type="button" class="p" data-do="print">PDF</button></div>
+<div class="bar"><span class="t">${esc(m.title)}</span><button type="button" data-do="toc">目錄</button><button type="button" data-do="minus">A−</button><button type="button" data-do="plus">A＋</button><button type="button" data-do="night">夜</button><button type="button" data-do="mode" id="modebtn">翻頁</button><button type="button" class="p" data-do="print">PDF</button></div>
 <div class="toc" id="toc"><button type="button" class="x" data-do="toc" aria-label="關閉">×</button><div class="in"><h2>目 次</h2><a href="#ch0">封面・角色</a>${chs.map((c, i) => `<a href="#ch${i + 1}">第${zh(i + 1)}章<small>${esc(c.title.startsWith('第') ? '' : c.title)}</small></a>`).join('')}</div></div>
 <div class="leaf" id="leaf"><div class="flow" id="flow">
 <section class="ch front" id="ch0">
 <div class="coverpage"><img src="${cover}" alt="${esc(m.title)}"></div>
 <div class="titlepage"><h1>${esc(m.title)}</h1><p class="sub">${esc(m.subtitle)}</p><p class="orn">❦</p><p class="by">${esc(m.character)}${m.userName ? ' ・ ' + esc(m.userName) : ''}</p></div>
-<p class="tip">這個檔案就是整本書，離線也能看。看到哪會記住，下次打開接著看。想要 PDF：按右上的 PDF，目的地選「存成 PDF」、勾「背景圖形」、取消「頁首和頁尾」。</p>
+<p class="tip">這個檔案就是整本書，離線也能看。看到哪會記住，下次打開接著看。右上「翻頁／直滑」可以換看法：翻頁像攤開的書，直滑像網路小說。想要 PDF：按右上的 PDF，目的地選「存成 PDF」、勾「背景圖形」、取消「頁首和頁尾」。</p>
 ${toX(introHTML())}
 <nav class="chnav"><span></span><a href="#ch1">第一章 ›</a></nav>
 </section>
@@ -1092,7 +1093,7 @@ ${chs.map(c => c.html).join('\n')}
   try{S=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
   if(S.size)H.style.setProperty('--size',S.size+'px'); if(S.night)H.classList.add('night');
   function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
-  function isBook(){return matchMedia('(min-width: 900px)').matches&&!printing}
+  function isBook(){ if(printing)return false; if(S.mode)return S.mode==='book'; return matchMedia('(min-width: 900px)').matches }
   var printing=false;
   function gap(){return parseFloat(getComputedStyle(flow).columnGap)||0}
   function layout(keep){ secs.forEach(function(s,i){s.classList.toggle('on',i===cur)}); flow.scrollLeft=0;
@@ -1103,7 +1104,7 @@ ${chs.map(c => c.html).join('\n')}
     S.cur=cur;S.pg=pg;save(); }
   function step(d){ if(d>0&&pg<pages-1)return turn(1); if(d<0&&pg>0)return turn(-1); var n=cur+d; if(n<0||n>=secs.length)return; cur=n; layout(false); if(d<0){pg=pages-1;turn(0)} }
   function goto(i){ if(H.classList.contains('book')){cur=Math.max(0,Math.min(secs.length-1,i));layout(false)} else { var el=document.getElementById('ch'+i); if(el)el.scrollIntoView(); } }
-  function apply(){ var b=isBook(); var was=H.classList.contains('book'); H.classList.toggle('book',b);
+  function apply(){ var b=isBook(); var was=H.classList.contains('book'); H.classList.toggle('book',b); document.getElementById('modebtn').textContent=b?'直滑':'翻頁';
     if(b){ if(!was&&S.cur!=null){cur=Math.min(secs.length-1,S.cur|0);pg=S.pg|0;layout(true)} else layout(true); }
     else { secs.forEach(function(s){s.classList.remove('on')}); if(!was&&S.y&&!location.hash)scrollTo(0,S.y); } }
   function size(d){var v=parseFloat(getComputedStyle(H).getPropertyValue('--size'))||${st.size};v=Math.min(26,Math.max(12,v+d));H.style.setProperty('--size',v+'px');S.size=v;save();if(H.classList.contains('book'))layout(true)}
@@ -1111,7 +1112,8 @@ ${chs.map(c => c.html).join('\n')}
     if(d==='toc')document.getElementById('toc').classList.toggle('on');
     else if(d==='minus')size(-1);else if(d==='plus')size(1);
     else if(d==='night'){H.classList.toggle('night');S.night=H.classList.contains('night');save()}
-    else if(d==='print')print();else if(d==='prev')step(-1);else if(d==='next')step(1)});
+    else if(d==='print')print();else if(d==='prev')step(-1);else if(d==='next')step(1);
+    else if(d==='mode'){S.mode=H.classList.contains('book')?'scroll':'book';save();apply()}});
   document.addEventListener('click',function(e){var a=e.target.closest('a[href^="#ch"]');if(!a)return;e.preventDefault();document.getElementById('toc').classList.remove('on');goto(parseInt(a.getAttribute('href').slice(3),10)||0)});
   leaf.addEventListener('click',function(e){ if(!H.classList.contains('book')||e.target.closest('a,button'))return; if(getSelection&&String(getSelection()).length)return;
     var r=leaf.getBoundingClientRect(),x=(e.clientX-r.left)/r.width; if(x<0.22)step(-1); else if(x>0.78)step(1); });
