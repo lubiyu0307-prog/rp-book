@@ -346,35 +346,46 @@ const SAMPLE = (() => {
   ];
 })();
 
-// ───────── Takeout 匯 HTML 的也吃（2026-09-29）─────────
-// Google 的 MyActivity.html 一則活動一個 outer-cell；正文格裡是「Prompted 提問<br>時間戳<br>回覆 HTML」，
-// Gem 那行（「X was used in this chat」）在正文格或旁邊的說明格。這裡把它轉回跟 JSON 一樣的形狀
-// （title／time／subtitles／safeHtmlItem），後面全部共用。網頁版與指令版這段要一模一樣
+// ───────── Takeout 匯 HTML 的也吃（2026-09-29；9/30 改成不挑語言）─────────
+// Google 的 MyActivity.html／我的活動.html 一則活動一個 outer-cell；正文格裡是「提問<br>（Gem 那行<br>）時間戳<br>回覆 HTML」，
+// Gem 那行是連到 gemini.google.com/gems/view 的 <a>。這裡把它轉回跟 JSON 一樣的形狀（title／time／subtitles／safeHtmlItem），
+// 後面全部共用。格子的 class 名稱各語言都一樣，只有日期跟句子會翻譯，所以日期用「找得到年、找得到時:分」的寬鬆法，
+// Gem 名字從引號或句子裡撈。網頁版與指令版這段要一模一樣
 const MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
 const unent = s => s.replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
   .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
 const stripTags = s => s.replace(/<[^>]+>/g, '');
-// 時間戳那一行：英文「Sep 28, 2026, 10:12:33 PM GMT+8」、中文「2026年9月28日 下午10:12:33 [GMT+8]」；沒寫時區就當台灣
+// 時間戳那一行：英文「Sep 28, 2026, 10:12:33 PM GMT+8」、中文「2026年9月28日 下午10:12:33 [GMT+8]」、「2026/9/28 上午12:37 CST」都認得；沒寫時區就當台灣
 function takeoutTime(line) {
-  const s = stripTags(line).replace(/\s+/g, ' ').trim();
-  const TZ = /\s*(?:\[?(?:GMT|UTC)\s*([+-]\d{1,2})(?::?(\d{2}))?\]?)?$/.source;
-  let y, mo, d, h, mi, sec, oh, om;
-  let m = s.match(new RegExp(/^([A-Z][a-z]{2})[a-z]*\.? (\d{1,2}), (\d{4}),? (\d{1,2}):(\d{2})(?::(\d{2}))?\s*([AP]M)?/.source + TZ, 'i'));
-  if (m) {
-    mo = MONTHS[m[1].toLowerCase()]; if (mo === undefined) return null;
-    d = +m[2]; y = +m[3]; h = +m[4]; mi = +m[5]; sec = +(m[6] || 0);
-    if (m[7]) { const pm = m[7].toUpperCase() === 'PM'; if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; }
-    oh = m[8]; om = m[9];
-  } else {
-    m = s.match(new RegExp(/^(\d{4})年(\d{1,2})月(\d{1,2})日\s*(凌晨|早上|上午|中午|下午|晚上)?\s*(\d{1,2}):(\d{2})(?::(\d{2}))?/.source + TZ));
-    if (!m) return null;
-    y = +m[1]; mo = +m[2] - 1; d = +m[3]; h = +m[5]; mi = +m[6]; sec = +(m[7] || 0);
-    if (m[4] && /下午|晚上/.test(m[4]) && h < 12) h += 12;
-    if (m[4] && /凌晨|早上|上午/.test(m[4]) && h === 12) h = 0;
-    oh = m[8]; om = m[9];
-  }
-  const off = oh === undefined ? 8 * 60 : +oh * 60 + (om ? (oh.startsWith('-') ? -1 : 1) * +om : 0);
+  const s = unent(stripTags(line)).replace(/\s+/g, ' ').trim();
+  if (s.length > 80 || !/\d{4}/.test(s)) return null;
+  const t = s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (!t) return null;
+  let y, mo, d;
+  let m = s.match(/(\d{4})\s*[年\/\-.]\s*(\d{1,2})\s*[月\/\-.]\s*(\d{1,2})/);
+  if (m) { y = +m[1]; mo = +m[2] - 1; d = +m[3]; }
+  else if ((m = s.match(/\b([A-Za-z]{3})[A-Za-z]*\.?\s+(\d{1,2}),?\s+(\d{4})/))) { mo = MONTHS[m[1].toLowerCase()]; d = +m[2]; y = +m[3]; }
+  else if ((m = s.match(/\b(\d{1,2})\.?\s+([A-Za-z]{3})[A-Za-z]*\.?,?\s+(\d{4})/))) { d = +m[1]; mo = MONTHS[m[2].toLowerCase()]; y = +m[3]; }
+  else if ((m = s.match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/))) { mo = +m[1] - 1; d = +m[2]; y = +m[3]; }
+  else return null;
+  if (mo === undefined || mo < 0 || mo > 11 || d < 1 || d > 31) return null;
+  let h = +t[1]; const mi = +t[2], sec = +(t[3] || 0);
+  const pm = /\bPM\b|下午|晚上|午後/i.test(s), am = /\bAM\b|上午|凌晨|早上|午前/i.test(s);
+  if (pm && h < 12) h += 12;
+  if (am && h === 12) h = 0;
+  const z = s.match(/(?:GMT|UTC)\s*([+-])\s*(\d{1,2})(?::?(\d{2}))?/i);
+  const off = z ? (z[1] === '-' ? -1 : 1) * (+z[2] * 60 + +(z[3] || 0)) : 8 * 60;
   return new Date(Date.UTC(y, mo, d, h, mi, sec) - off * 60e3).toISOString();
+}
+// Gem 那行的名字：有引號就拿引號裡的，英文拿「was used in this」前面的，中文把「已在這個對話中使用」「管理你的 Gem」那些句子剝掉
+function gemName(text) {
+  const q = text.match(/[「『“„"]([^」』”“"]+)[」』”“"]/);
+  if (q) return q[1].trim();
+  const en = text.match(/^(.*?)\s+was used in this/i);
+  if (en) return en[1].trim();
+  return text.replace(/(已|曾)?(在|於)?(這|此|该|該|本)?(個|段|次|則)?(對話|对话|交談|聊天|chat)(中|裡|里|內)?(已)?(使用|用了|用於|用过|用過|启用|啟用)(了)?/g, '')
+    .replace(/(已|曾)?(被)?(使用|用於|用于|用了|啟用|启用)(於|于|在)?(這|此|该|該|本)?(個|段|次|則)?(對話|对话|交談|聊天|chat)(中|裡|里|內)?/g, '')
+    .replace(/(管理|Manage)[\s\S]*$/i, '').replace(/[。．.，,、：:\s]+$/g, '').replace(/^[。．.，,、：:\s]+/g, '').trim();
 }
 function htmlToActivity(html) {
   const out = [];
@@ -387,23 +398,32 @@ function htmlToActivity(html) {
     if (end >= 0) body = body.slice(0, end);
     body = body.replace(/(<\/div>\s*)+$/, '');
     const lines = body.split(/<br\s*\/?>/i);
-    const ti = lines.findIndex(l => takeoutTime(l));
+    let ti = -1;
+    for (let i = 1; i < lines.length && ti < 0; i++) if (takeoutTime(lines[i])) ti = i;
     if (ti < 0) continue;
     const title = unent(stripTags(lines[0])).trim();
     const rest = lines.slice(ti + 1).join('<br>').replace(new RegExp(GEMLINK.source + '\\s*(<br>)?', 'g'), '').trim();
     const x = { header: 'Gemini Apps', title, time: takeoutTime(lines[ti]), subtitles: [], details: [], safeHtmlItem: rest ? [{ html: rest }] : [] };
     const gem = cell.match(GEMLINK) || cell.match(/()([^<>\n]+? was used in this[^<]*)/);
-    if (gem) x.subtitles.push({ name: unent(gem[2]).trim(), url: gem[1] || 'https://gemini.google.com/gems/view' });
+    if (gem) { const name = gemName(unent(gem[2])); if (name) x.subtitles.push({ name: name + ' was used in this chat. Manage your Gems.', url: gem[1] || 'https://gemini.google.com/gems/view' }); }
     const app = cell.match(/href="(https:\/\/gemini\.google\.com\/app\/[^"]*)"/);
     if (app) x.details.push({ url: unent(app[1]) });
     out.push(x);
   }
   return out;
 }
+// 認不出來的時候給人看的線索：第一格正文長什麼樣（去掉標籤、留 160 字），讓對方截圖回來就能對
+function htmlPeek(html) {
+  const cells = html.split(/<div class="outer-cell[^"]*">/).slice(1);
+  if (!cells.length) return '裡面沒有 Google 那種格子（outer-cell）';
+  const at = cells[0].search(/<div class="content-cell[^"]*mdl-typography--body-1"[^>]*>/);
+  const body = at < 0 ? cells[0] : cells[0].slice(at);
+  return `格子有 ${cells.length} 個，第一格是：「${unent(stripTags(body.replace(/<br\s*\/?>/gi, ' ⏎ '))).replace(/\s+/g, ' ').trim().slice(0, 160)}」`;
+}
 
 // ───────── 讀檔與挑對話 ─────────
 const SKIP_TITLE = /^(Created|Selected|Branched|Gave|Used|Viewed|Searched|Deleted|已建立|已選取|已刪除)\b/;
-const PROMPT_PREFIX = /^(Prompted|You said|已提示|提示了?)\s*/;
+const PROMPT_PREFIX = /^(Prompted|You said|已提示|提示了?|已詢問|詢問了?)\s*/;
 const gemOf = x => {
   const s = (x.subtitles || []).find(s => /gemini\.google\.com\/(gems|notebooks)/.test(s.url || '') || / was used in this/.test(s.name || ''));
   return s ? (s.name || '').replace(/\s*(was used in this[\s\S]*|已在[\s\S]*|在這段對話[\s\S]*)$/, '').trim() : '';
@@ -1019,7 +1039,9 @@ async function readActivity(file) {
   const msg = $('loadmsg'); msg.className = 'msg'; msg.textContent = `讀取 ${file.name}⋯`;
   try {
     const text = await file.text();
-    const data = /^\s*</.test(text) ? htmlToActivity(text) : JSON.parse(text);
+    const isHtml = /^\s*</.test(text);
+    const data = isHtml ? htmlToActivity(text) : JSON.parse(text);
+    if (isHtml && !data.length) { msg.className = 'msg err'; msg.textContent = '這份 HTML 的格子我認不出來。' + htmlPeek(text) + '。把這段截圖給裝幀室的人，就能對出來。'; return; }
     if (!Array.isArray(data) || !data.length) throw new Error('shape');
     const gems = listGems(data);
     if (!gems.length) { msg.className = 'msg err'; msg.textContent = '這份檔案裡沒有找到用 Gem 聊的對話。確認是「我的活動 › Gemini Apps」裡的 JSON 或 HTML。'; return; }
