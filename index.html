@@ -194,7 +194,8 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
 .readerbar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top)); border-bottom: 1px solid var(--line); font-size: .9rem; background: var(--panel); }
 .readerbar button { font: inherit; border: 0; background: none; color: var(--cloth); cursor: pointer; padding: 4px 6px; }
 .readerbar span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
-.readerwrap iframe { width: 100%; height: 100%; border: 0; background: #fff; }
+.readerwrap .framewrap { overflow: auto; -webkit-overflow-scrolling: touch; height: 100%; min-height: 0; }
+.readerwrap iframe { width: 100%; height: 100%; min-height: 100%; border: 0; background: #fff; display: block; }
 </style>
 
 <div class="wrap">
@@ -337,7 +338,7 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
     </div>
   </div>
 </div>
-<div class="readerwrap" id="readerwrap" hidden><div class="readerbar"><button type="button" id="readerclose">‹ 書櫃</button><span id="readertitle"></span></div><iframe id="readerframe" title="閱讀"></iframe></div>
+<div class="readerwrap" id="readerwrap" hidden><div class="readerbar"><button type="button" id="readerclose">‹ 書櫃</button><span id="readertitle"></span></div><div class="framewrap"><iframe id="readerframe" title="閱讀"></iframe></div></div>
 
 <script>
 (() => {
@@ -1055,7 +1056,8 @@ html.night .pagebg{opacity:.25}
 .tip{font-size:.8em;color:var(--muted);text-align:center;margin:0 0 2em;font-family:var(--ui)}
 .foot{display:none}
 /* 攤開的書（寬螢幕）：一次一章，兩欄對開，橫向翻頁 */
-html.book body{max-width:none;padding:0;height:100vh;height:100dvh;overflow:hidden;display:grid;grid-template-rows:auto 1fr auto}
+html.book{height:var(--vh,100vh);overflow:hidden}
+html.book body{max-width:none;padding:0;height:var(--vh,100vh);overflow:hidden;display:grid;grid-template-rows:auto 1fr auto}
 html.book .bar{margin:0;padding-left:24px;padding-right:24px}
 html.book .leaf{position:relative;height:100%;overflow:hidden;width:100%;max-width:1120px;margin:0 auto;padding:2.2em 4vw 1.6em;box-sizing:border-box}
 html.book .leaf::before{content:"";position:absolute;left:50%;top:2.2em;bottom:1.6em;border-left:1px solid var(--soft);pointer-events:none}
@@ -1095,6 +1097,10 @@ ${chs.map(c => c.html).join('\n')}
   function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
   function isBook(){ if(printing)return false; if(S.mode)return S.mode==='book'; return matchMedia('(min-width: 900px)').matches }
   var printing=false;
+  // 嵌在別人的小視窗裡（書櫃）時，iPhone 會把小視窗撐到跟內容一樣高，100vh 量不準：改問外面的視窗
+  function vh(){ try{ if(window.frameElement){ var bar=parent.document.querySelector('.readerbar'); return parent.innerHeight-(bar?bar.offsetHeight:0); } }catch(e){} return innerHeight; }
+  function setVh(){ H.style.setProperty('--vh', vh()+'px'); }
+  try{ if(window.frameElement) parent.addEventListener('resize',function(){setVh(); if(H.classList.contains('book'))layout(true)}); }catch(e){}
   function gap(){return parseFloat(getComputedStyle(flow).columnGap)||0}
   function layout(keep){ secs.forEach(function(s,i){s.classList.toggle('on',i===cur)}); flow.scrollLeft=0;
     var w=flow.clientWidth,g=gap(); pages=Math.max(1,Math.round((flow.scrollWidth+g)/(w+g))); pg=keep?Math.min(pg,pages-1):0; turn(0); }
@@ -1104,7 +1110,7 @@ ${chs.map(c => c.html).join('\n')}
     S.cur=cur;S.pg=pg;save(); }
   function step(d){ if(d>0&&pg<pages-1)return turn(1); if(d<0&&pg>0)return turn(-1); var n=cur+d; if(n<0||n>=secs.length)return; cur=n; layout(false); if(d<0){pg=pages-1;turn(0)} }
   function goto(i){ if(H.classList.contains('book')){cur=Math.max(0,Math.min(secs.length-1,i));layout(false)} else { var el=document.getElementById('ch'+i); if(el)el.scrollIntoView(); } }
-  function apply(){ var b=isBook(); var was=H.classList.contains('book'); H.classList.toggle('book',b); document.getElementById('modebtn').textContent=b?'直滑':'翻頁';
+  function apply(){ var b=isBook(); var was=H.classList.contains('book'); H.classList.toggle('book',b); setVh(); document.getElementById('modebtn').textContent=b?'直滑':'翻頁';
     if(b){ if(!was&&S.cur!=null){cur=Math.min(secs.length-1,S.cur|0);pg=S.pg|0;layout(true)} else layout(true); }
     else { secs.forEach(function(s){s.classList.remove('on')}); if(!was&&S.y&&!location.hash)scrollTo(0,S.y); } }
   function size(d){var v=parseFloat(getComputedStyle(H).getPropertyValue('--size'))||${st.size};v=Math.min(26,Math.max(12,v+d));H.style.setProperty('--size',v+'px');S.size=v;save();if(H.classList.contains('book'))layout(true)}
