@@ -173,6 +173,18 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
 .hit b { color: var(--gilt); font-weight: 500; margin-right: .4em; }
 .hit mark, .flow mark { background: color-mix(in srgb, var(--gilt) 35%, transparent); color: inherit; border-radius: 2px; }
 @media (prefers-reduced-motion: no-preference) { .flow { scroll-behavior: smooth; } }
+/* 書櫃：做好的書留在這台瀏覽器裡，點進去就翻 */
+.shelfgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 14px 12px; }
+.shelfitem { display: grid; gap: 4px; font-size: .76rem; color: var(--muted); }
+.shelfitem img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 2px 5px 5px 2px; box-shadow: var(--shadow); cursor: pointer; background: var(--cloth); }
+.shelfitem b { color: var(--ink); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shelfitem .ops { display: flex; gap: 8px; }
+.shelfitem .ops button { font: inherit; font-size: .72rem; background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; text-decoration: underline; }
+.readerwrap { position: fixed; inset: 0; z-index: 50; background: var(--paper); display: grid; grid-template-rows: auto 1fr; }
+.readerbar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top)); border-bottom: 1px solid var(--line); font-size: .9rem; background: var(--panel); }
+.readerbar button { font: inherit; border: 0; background: none; color: var(--cloth); cursor: pointer; padding: 4px 6px; }
+.readerbar span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.readerwrap iframe { width: 100%; height: 100%; border: 0; background: #fff; }
 </style>
 
 <div class="wrap">
@@ -183,6 +195,11 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
 
   <div class="grid">
     <form class="order" id="order" autocomplete="off">
+      <section class="step" id="shelfstep" hidden>
+        <h2><span class="n">書櫃</span><span id="shelfcount">做好的書</span></h2>
+        <p class="hint">留在這台裝置的瀏覽器裡，點封面就翻，看到哪會記住。換裝置或清掉瀏覽資料就沒了，想留久一點記得也下載一份。</p>
+        <div class="shelfgrid" id="shelfgrid"></div>
+      </section>
       <section class="step">
         <h2><span class="n">STEP 1</span>放入對話紀錄</h2>
         <p class="hint">到 takeout.google.com，只勾「我的活動」，格式選 JSON（已經匯成 HTML 的也可以，直接放進來）。解壓後在「我的活動」裡找到 <b>Gemini Apps</b> 資料夾，整個拖進來就好。<br>
@@ -279,9 +296,9 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
 
       <section class="step">
         <h2><span class="n">STEP 7</span>裝訂</h2>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="submit" class="btn" id="make">下載 EPUB</button><button type="button" class="btn ghost" id="makeprint">下載隨身閱讀版（.html）</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="submit" class="btn" id="make">下載 EPUB</button><button type="button" class="btn ghost" id="makeprint">下載隨身閱讀版（.html）</button><button type="button" class="btn ghost" id="toshelf">放進書櫃</button></div>
         <p class="msg" id="makemsg"></p>
-        <p class="hint">EPUB 用 iPhone／Mac 的「書籍」、Google Play 圖書、Kobo 打開，字型和顏色會照閱讀器的設定走；書頁照片在 EPUB 裡會變成每章開頭的插圖頁。<br>沒有書籍 app 也想看：用「隨身閱讀版」，一個 .html 檔，手機、電腦任何瀏覽器點開就是書，離線也行，有目錄、字級、夜間模式，看到哪會記住；跟右邊預覽一模一樣（字型、照片都在）。想要 PDF 就從那個檔按右上的 PDF、存成 PDF。<br>Windows 沒有內建 EPUB 閱讀器，要裝 Calibre、Thorium，或上傳到 Google Play 圖書；不想裝的話用隨身閱讀版就好。<br>之後還有新的對話，重新匯出一次、用同樣的書名與章名再裝訂，新的章節會接在最後面。</p>
+        <p class="hint">EPUB 用 iPhone／Mac 的「書籍」、Google Play 圖書、Kobo 打開，字型和顏色會照閱讀器的設定走；書頁照片在 EPUB 裡會變成每章開頭的插圖頁。<br>沒有書籍 app 也想看：用「隨身閱讀版」，一個 .html 檔，手機、電腦任何瀏覽器點開就是書，離線也行，有目錄、字級、夜間模式，看到哪會記住；跟右邊預覽一模一樣（字型、照片都在）。想要 PDF 就從那個檔按右上的 PDF、存成 PDF。<br>「放進書櫃」會把這本留在這台裝置的裝幀室裡（頁面最上面），不用檔案也能隨時翻。<br>Windows 沒有內建 EPUB 閱讀器，要裝 Calibre、Thorium，或上傳到 Google Play 圖書；不想裝的話用隨身閱讀版就好。<br>之後還有新的對話，重新匯出一次、用同樣的書名與章名再裝訂，新的章節會接在最後面。</p>
       </section>
     </form>
 
@@ -310,6 +327,7 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
     </div>
   </div>
 </div>
+<div class="readerwrap" id="readerwrap" hidden><div class="readerbar"><button type="button" id="readerclose">‹ 書櫃</button><span id="readertitle"></span></div><iframe id="readerframe" title="閱讀"></iframe></div>
 
 <script>
 (() => {
@@ -1258,7 +1276,7 @@ $('makeprint').addEventListener('click', async () => {
   const msg = $('makemsg'); msg.className = 'msg';
   if (!S.book?.turns.length) { msg.className = 'msg err'; msg.textContent = '先選一位有對話的角色。'; return; }
   $('makeprint').disabled = true; msg.textContent = '排版中⋯';
-  try { await deliver(await buildPrint(), fileName('.html'), msg); } catch (err) { msg.className = 'msg err'; msg.textContent = '排版失敗：' + (err?.message || err); }
+  try { const blob = await buildPrint(); await deliver(blob, fileName('.html'), msg); try { await shelfAdd(blob); msg.textContent += ' 也放進書櫃了。'; } catch {} } catch (err) { msg.className = 'msg err'; msg.textContent = '排版失敗：' + (err?.message || err); }
   $('makeprint').disabled = false;
 });
 if (window.claude?.use) window.claude.use('downloads').then(d => { downloads = d; }).catch(() => {});
@@ -1272,6 +1290,44 @@ $('order').addEventListener('submit', async e => {
   } catch (err) { msg.className = 'msg err'; msg.textContent = '裝訂失敗：' + (err?.message || err); }
   $('make').disabled = false;
 });
+
+// ───────── 書櫃（IndexedDB，這台裝置自己的）─────────
+const shelfDB = () => new Promise((ok, no) => { const r = indexedDB.open('rp-book', 1); r.onupgradeneeded = () => r.result.createObjectStore('shelf', { keyPath: 'id' }); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+async function shelfTx(mode, fn) { const db = await shelfDB(); return new Promise((ok, no) => { const tx = db.transaction('shelf', mode), req = fn(tx.objectStore('shelf')); tx.oncomplete = () => ok(req && req.result); tx.onerror = () => no(tx.error); }); }
+async function renderShelf() {
+  let books = []; try { books = await shelfTx('readonly', st => st.getAll()); } catch { return; }
+  books.sort((a, b) => (b.at || 0) - (a.at || 0));
+  $('shelfstep').hidden = !books.length;
+  $('shelfcount').textContent = books.length ? `做好的書 · ${books.length} 本` : '做好的書';
+  $('shelfgrid').innerHTML = books.map(b => `<div class="shelfitem" data-id="${esc(b.id)}"><img src="${b.cover}" alt="${esc(b.title)}" data-open="1"><b>${esc(b.title)}</b><span>${esc(b.character || '')} · ${b.pages} 頁</span><div class="ops"><button type="button" data-dl="1">下載</button><button type="button" data-rm="1">刪除</button></div></div>`).join('');
+}
+async function shelfAdd(blob) {
+  const m = meta(), b = S.book;
+  const cv = document.createElement('canvas'); cv.width = 240; cv.height = 360; cv.getContext('2d').drawImage($('cover'), 0, 0, 240, 360);
+  const book = { id: m.title + '|' + (b.turns[0]?.time || ''), title: m.title, character: m.character, pages: b.turns.length, chapters: b.chapters.length, cover: cv.toDataURL('image/jpeg', 0.8), html: await blob.text(), at: Date.now() };
+  await shelfTx('readwrite', st => st.put(book));
+  await renderShelf();
+}
+function openBook(book) {
+  $('readertitle').textContent = book.title; $('readerframe').srcdoc = book.html; $('readerwrap').hidden = false; document.body.style.overflow = 'hidden';
+}
+$('readerclose').addEventListener('click', () => { $('readerwrap').hidden = true; $('readerframe').srcdoc = ''; document.body.style.overflow = ''; });
+$('shelfgrid').addEventListener('click', async e => {
+  const item = e.target.closest('[data-id]'); if (!item) return;
+  const id = item.dataset.id;
+  if (e.target.closest('[data-rm]')) { if (!confirm('把這本從書櫃拿掉？（下載過的檔案不受影響）')) return; await shelfTx('readwrite', st => st.delete(id)); return renderShelf(); }
+  const book = await shelfTx('readonly', st => st.get(id)); if (!book) return;
+  if (e.target.closest('[data-dl]')) return deliver(new Blob([book.html], { type: 'text/html' }), book.title.replace(/[\\/:*?"<>|]/g, '') + '.html', $('makemsg'));
+  if (e.target.closest('[data-open]')) openBook(book);
+});
+$('toshelf').addEventListener('click', async () => {
+  const msg = $('makemsg'); msg.className = 'msg';
+  if (!S.book?.turns.length) { msg.className = 'msg err'; msg.textContent = '先選一位有對話的角色。'; return; }
+  $('toshelf').disabled = true; msg.textContent = '放進書櫃⋯';
+  try { await shelfAdd(await buildPrint()); msg.textContent = `《${meta().title}》放進書櫃了，在頁面最上面。`; } catch (err) { msg.className = 'msg err'; msg.textContent = '放不進去：' + (err?.message || err); }
+  $('toshelf').disabled = false;
+});
+renderShelf();
 
 loadGems();
 document.fonts?.ready.then(() => renderCover());
