@@ -410,6 +410,8 @@ function htmlToActivity(html) {
     if (app) x.details.push({ url: unent(app[1]) });
     out.push(x);
   }
+  // 整份都沒有 Gem 的標記（直接跟 Gemini 聊、或這個語言的寫法我還沒見過）：全部當成同一位角色「Gemini」，書照樣做得出來
+  if (out.length && !out.some(x => x.subtitles.length)) for (const x of out) { x.noGem = true; x.subtitles.push({ name: 'Gemini was used in this chat. Manage your Gems.', url: 'https://gemini.google.com/gems/view' }); }
   return out;
 }
 // 認不出來的時候給人看的線索：第一格正文長什麼樣（去掉標籤、留 160 字），讓對方截圖回來就能對
@@ -1093,6 +1095,7 @@ async function readActivity(file) {
     if (!gems.length) { msg.className = 'msg err'; msg.textContent = '這份檔案裡沒有找到用 Gem 聊的對話。確認是「我的活動 › Gemini Apps」裡的 JSON 或 HTML。'; return; }
     S.activity = data; S.sample = false; S.cover = null;
     msg.textContent = `讀好了：${data.length} 則活動、${gems.length} 位角色。`;
+    if (isHtml && data.every(x => x.noGem)) msg.textContent += `這份裡沒看到「用了哪個 Gem」的標記，先全部當成同一位角色「Gemini」。如果妳明明是用 Gem 聊的，把這段截圖給裝幀室的人：${htmlPeek(text)}`;
     loadGems();
   } catch {
     msg.className = 'msg err'; msg.textContent = '讀不懂這個檔案。要放的是 Takeout 匯出的「我的活動.json」「MyActivity.html」，或酒館匯出的 .jsonl。';
