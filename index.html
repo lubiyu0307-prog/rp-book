@@ -999,16 +999,17 @@ ${fonts}
 <style>${bookCSS(p, st, WEBFONT[st.font])}
 @page{size:A5;margin:16mm 14mm}
 html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-body{max-width:34em;margin:0 auto;padding:1.5em 16px 4em}
+html{background:${p.paper}}
+body{max-width:34em;margin:0 auto;padding:1.5em 24px 4em}
 .pagebg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
 .coverpage img{display:block;width:100%;max-width:26em;margin:0 auto}
 .coverpage,.titlepage,.intro{break-after:page}
 .bar{position:sticky;top:0;z-index:1;display:flex;gap:12px;align-items:center;justify-content:space-between;background:${p.paper};border-bottom:1px solid ${p.soft};padding:10px 0;margin-bottom:2em;font-size:.85em;color:${p.muted}}
 .bar button{font:inherit;border:0;border-radius:6px;padding:8px 14px;background:${p.accent};color:${p.paper};cursor:pointer}
-@media print{body{max-width:none;padding:0}.bar{display:none}}
+@media print{body{max-width:none;padding:0 1.6em}.bar{display:none}}
 </style></head>
 <body class="${cls}">${bg ? `<img class="pagebg" src="${bg}" alt="">` : ''}
-<div class="bar"><span>電腦：列印時目的地選「存成 PDF」，勾選「背景圖形」<br>iPhone：按鈕後在預覽上兩指放大，再從分享存到「檔案」</span><button type="button" onclick="print()">存成 PDF</button></div>
+<div class="bar"><span>電腦：列印時目的地選「存成 PDF」，勾選「背景圖形」、取消「頁首和頁尾」（不然每頁會印日期跟網址）<br>iPhone：按鈕後在預覽上兩指放大，再從分享存到「檔案」</span><button type="button" onclick="print()">存成 PDF</button></div>
 <div class="coverpage"><img src="${cover}" alt="${esc(m.title)}"></div>
 <div class="titlepage"><h1>${esc(m.title)}</h1><p class="sub">${esc(m.subtitle)}</p><p class="orn">❦</p><p class="by">${esc(m.character)}${m.userName ? ' ・ ' + esc(m.userName) : ''}</p></div>
 ${toX(introHTML())}
