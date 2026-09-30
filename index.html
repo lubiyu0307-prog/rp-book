@@ -552,18 +552,22 @@ function chaptersOf(turns, st = S.style, breaks = S.breaks) {
   return chapters.reduce((acc, c) => { if (acc.length && c.length < 3) acc.at(-1).push(...c); else acc.push(c); return acc; }, []);
 }
 function collect(activity, gem) {
-  let turns = activity.filter(x => gemOf(x) === gem && !SKIP_TITLE.test(x.title || ''))
+  const raw = activity.filter(x => gemOf(x) === gem && !SKIP_TITLE.test(x.title || ''))
     .map(x => {
       const html = (x.safeHtmlItem || []).map(s => s.html || '').join('\n');
       const user = (x.title || '').replace(PROMPT_PREFIX, '');
       return { time: x.time, user, html, page: pageOf(html), meta: isMeta(user) || RANGE.test(user), summary: RANGE.test(plainish(html)), card: /角色卡/.test(user.slice(0, 40)), tavernUser: x.tavern?.user || '' };
-    }).filter(t => t.html && !t.summary).sort((a, b) => (a.time < b.time ? -1 : 1));
-  const total = turns.length;
+    }).filter(t => t.html).sort((a, b) => (a.time < b.time ? -1 : 1));
+  const total = raw.length;
+  // 「整理劇情」那種回覆不收；但如果這樣一收就全沒了，代表這位角色每則都長得像整理（例如狀態欄印頁數範圍），那就全部留下
+  let turns = raw.filter(t => !t.summary), note = '';
+  if (!turns.length && raw.length) { turns = raw; note = '這位角色每則都有頁數範圍，整理劇情的過濾先關掉'; }
   const paged = turns.filter(t => t.page).length >= turns.length * 0.5;
-  if (paged) return { stories: storylines(turns), total, paged };
+  if (paged) { const st = storylines(turns); if (st.length) return { stories: st, total, paged, note }; note = '頁碼串不起來，改照時間順序全收'; }
   turns = turns.filter(t => !t.meta || t.html.length > 800);
   turns = turns.filter((t, i) => { const n = turns[i + 1]; return !n || n.user.slice(0, 40) !== t.user.slice(0, 40); });
-  return { stories: turns.length ? [turns] : [], total, paged };
+  if (!turns.length && raw.length) { turns = raw; note = '過濾後一則不剩，全部照原樣收'; }
+  return { stories: turns.length ? [turns] : [], total, paged: false, note };
 }
 
 // ───────── 文字處理（預覽與 EPUB 共用）─────────
@@ -741,7 +745,7 @@ function pickStory() {
   const b = S.book;
   $('stats').innerHTML = b.turns.length
     ? `共 <b>${b.total}</b> 則，收錄 <b>${b.turns.length}</b> 頁、<b>${b.chapters.length}</b> 章，${fmtDate(tw(b.turns[0].time))} — ${fmtDate(tw(b.turns.at(-1).time))}` +
-      (b.paged ? '<br>有頁碼：重來與整理的部分已經拿掉' : '') + (b.stories > 1 ? `<br>這位角色共有 ${b.stories} 段故事` : '') +
+      (b.paged ? '<br>有頁碼：重來與整理的部分已經拿掉' : '') + (b.stories > 1 ? `<br>這位角色共有 ${b.stories} 段故事` : '') + (S.all.note ? `<br>${esc(S.all.note)}` : '') +
       (saved ? '<br>接著上次在這台瀏覽器改到的地方' : '')
     : '這位角色沒有找到對話。';
   $('q').value = ''; hl = ''; hits = []; $('hits').hidden = true;
