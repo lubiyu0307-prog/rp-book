@@ -1204,6 +1204,8 @@ async function readActivity(file) {
   try {
     const text = await file.text();
     const isHtml = /^\s*</.test(text);
+    // 丟進來的是裝幀室做的閱讀版 .html（另一台的書櫃下載的）：直接進書櫃
+    if (isHtml && /rp-reader:/.test(text) && /class="flow"/.test(text)) { await shelfImport(text, file.name); return; }
     const data = isHtml ? htmlToActivity(text) : looksTavern(text) ? tavernToActivity(text, file.name) : JSON.parse(text);
     if (isHtml && !data.length) { msg.className = 'msg err'; msg.textContent = '這份 HTML 的格子我認不出來。' + htmlPeek(text) + '。把這段截圖給裝幀室的人，就能對出來。'; return; }
     if (!Array.isArray(data) || !data.length) throw new Error('shape');
@@ -1363,6 +1365,18 @@ async function shelfAdd(blob) {
   const book = { id: m.title + '|' + (b.turns[0]?.time || ''), title: m.title, character: m.character, pages: b.turns.length, chapters: b.chapters.length, cover: cv.toDataURL('image/jpeg', 0.8), html: await blob.text(), at: Date.now() };
   await shelfTx('readwrite', st => st.put(book));
   await renderShelf();
+}
+async function shelfImport(html, name) {
+  const msg = $('loadmsg');
+  const t = (html.match(/<title>([^<]*)<\/title>/) || [])[1] || name.replace(/\.html?$/i, '');
+  const by = (html.match(/<p class="by">([^<]*)/) || [])[1] || '';
+  const cover = (html.match(/<div class="coverpage"><img src="(data:image[^"]+)"/) || [])[1] || '';
+  const pages = (html.match(/class="turn"/g) || []).length, chapters = Math.max(0, (html.match(/<section class="ch"/g) || []).length);
+  const first = (html.match(/data-t="([^"]+)"/) || [])[1] || '';
+  const book = { id: decode(t) + '|' + first, title: decode(t), character: decode(by).split(' ・ ')[0], pages, chapters, cover, html, at: Date.now() };
+  await shelfTx('readwrite', st => st.put(book));
+  await renderShelf();
+  msg.className = 'msg'; msg.textContent = `《${book.title}》放進書櫃了，在頁面最上面。`;
 }
 function openBook(book) {
   $('readertitle').textContent = book.title; $('readerframe').srcdoc = book.html; $('readerwrap').hidden = false; document.body.style.overflow = 'hidden';
