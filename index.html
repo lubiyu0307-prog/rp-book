@@ -1070,7 +1070,7 @@ html.book .titlepage{margin-top:22%}
 html.book .foot{display:flex;justify-content:space-between;align-items:center;padding:8px 24px;padding-bottom:max(8px,env(safe-area-inset-bottom));font-size:13px;color:var(--muted);font-family:var(--ui);border-top:1px solid var(--soft)}
 html.book .foot button{font:inherit;border:0;background:none;color:var(--accent);cursor:pointer;padding:4px 8px}
 html.book .foot button:disabled{opacity:.3;cursor:default}
-@media (max-width:699px){html.book .flow{column-count:1}html.book .leaf::before{display:none}html.book .leaf{padding:1.6em 20px 1.2em}}
+@media (max-width:699px){#modebtn{display:none}}
 @page{size:A5;margin:16mm 14mm}
 @media print{html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact;height:auto;overflow:visible;display:block}body{max-width:none;padding:0 1.6em}.bar,.toc,.chnav,.tip,.foot{display:none!important}.leaf{height:auto;padding:0;max-width:none}.leaf::before{display:none}.flow{column-count:auto;height:auto;overflow:visible}.ch{display:block!important}.coverpage,.titlepage,.intro{break-after:page}.coverpage img{box-shadow:none;border-radius:0;max-width:26em;margin:0 auto}}
 </style></head>
@@ -1081,7 +1081,7 @@ html.book .foot button:disabled{opacity:.3;cursor:default}
 <section class="ch front" id="ch0">
 <div class="coverpage"><img src="${cover}" alt="${esc(m.title)}"></div>
 <div class="titlepage"><h1>${esc(m.title)}</h1><p class="sub">${esc(m.subtitle)}</p><p class="orn">❦</p><p class="by">${esc(m.character)}${m.userName ? ' ・ ' + esc(m.userName) : ''}</p></div>
-<p class="tip">這個檔案就是整本書，離線也能看。看到哪會記住，下次打開接著看。右上「翻頁／直滑」可以換看法：翻頁像攤開的書，直滑像網路小說。想要 PDF：按右上的 PDF，目的地選「存成 PDF」、勾「背景圖形」、取消「頁首和頁尾」。</p>
+<p class="tip">這個檔案就是整本書，離線也能看。看到哪會記住，下次打開接著看。電腦或平板上，右上「翻頁／直滑」可以換看法：翻頁像攤開的書，直滑像網路小說；手機是直滑。想要 PDF：按右上的 PDF，目的地選「存成 PDF」、勾「背景圖形」、取消「頁首和頁尾」。</p>
 ${toX(introHTML())}
 <nav class="chnav"><span></span><a href="#ch1">第一章 ›</a></nav>
 </section>
@@ -1095,7 +1095,8 @@ ${chs.map(c => c.html).join('\n')}
   try{S=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
   if(S.size)H.style.setProperty('--size',S.size+'px'); if(S.night)H.classList.add('night');
   function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
-  function isBook(){ if(printing)return false; if(S.mode)return S.mode==='book'; return matchMedia('(min-width: 900px)').matches }
+  // 手機只給直滑（露比 9/30 定的：iPhone 嵌在書櫃裡量不到高度，翻頁會全塞成一頁）；平板以上才有翻頁
+  function isBook(){ if(printing)return false; if(!matchMedia('(min-width: 700px)').matches)return false; if(S.mode)return S.mode==='book'; return matchMedia('(min-width: 900px)').matches }
   var printing=false;
   // 嵌在別人的小視窗裡（書櫃）時，iPhone 會把小視窗撐到跟內容一樣高，100vh 量不準：改問外面的視窗
   function vh(){ try{ if(window.frameElement){ var bar=parent.document.querySelector('.readerbar'); return parent.innerHeight-(bar?bar.offsetHeight:0); } }catch(e){} return innerHeight; }
