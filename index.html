@@ -516,6 +516,14 @@ const isMeta = t => META.some(r => r.test(t.trim()));
 const RANGE = /(?:第\s*)?\d+\s*頁?\s*(?:至|到|~|～|-|–)\s*(?:第\s*)?\d+\s*頁|\bp\s*\d+\s*[-–~]\s*p\s*\d+|(?:頁碼|頁數|Page)\s*[:：]?\s*\d+\s*[-–~]\s*\d+/i;
 const pageOf = html => { const all = [...plainish(html).matchAll(/(?:Page|頁碼|頁數)\s*[:：]?\s*(\d+)/gi)]; return all.length && all.length <= 2 ? Number(all.at(-1)[1]) : null; };
 const plainish = html => html.replace(/<[^>]+>/g, ' ');
+// 有的 Gem 會把妳第一則打的人設（名字：／性別：⋯）每頁都印在狀態欄最後（10/7 哩琺的李懿）。
+// 回覆裡跟妳打過的某一則一字不差的段落不收——角色自己寫的字再像也不會中，只有照抄的才會
+const squash = s => decode(String(s).replace(/<[^>]+>/g, '')).replace(/\s+/g, '');
+function dropEcho(turns) {
+  const said = new Set(turns.map(t => squash(t.user)).filter(u => u.length >= 20));
+  if (!said.size) return;
+  for (const t of turns) t.html = t.html.replace(/<p>([\s\S]*?)<\/p>/g, (m, inner) => said.has(squash(inner)) ? '' : m);
+}
 
 function listGems(activity) {
   const g = new Map();
@@ -559,6 +567,7 @@ function collect(activity, gem) {
       const user = (x.title || '').replace(PROMPT_PREFIX, '');
       return { time: x.time, user, html, page: pageOf(html), meta: isMeta(user) || RANGE.test(user), summary: RANGE.test(plainish(html)), card: /角色卡/.test(user.slice(0, 40)), tavernUser: x.tavern?.user || '' };
     }).filter(t => t.html).sort((a, b) => (a.time < b.time ? -1 : 1));
+  dropEcho(raw);
   const total = raw.length;
   // 「整理劇情」那種回覆不收；但如果這樣一收就全沒了，代表這位角色每則都長得像整理（例如狀態欄印頁數範圍），那就全部留下
   let turns = raw.filter(t => !t.summary), note = '';
@@ -622,7 +631,7 @@ function splitReply(html) {
   if (first && /🕒|📍/.test(first[1])) { scene = plain(first[1]); body = body.slice(first[0].length); }
   return { scene, body, status, statusTop };
 }
-function statusCard(html) {
+function statusCard(html, part) {
   // 表格型的狀態欄：一列變成「標籤：值」
   html = html.replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, '').replace(/<thead[\s\S]*?<\/thead>/gi, '')
     .replace(/<tr[^>]*>([\s\S]*?)<\/tr>/gi, (_, row) => { const c = [...row.matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(x => plain(x[1])); return c.length >= 2 ? `<p>${c[0]}：${c.slice(1).join('　')}</p>` : ''; });
@@ -631,7 +640,7 @@ function statusCard(html) {
     .map(s => s.trim().replace(/^▏\s*/, '').replace(/\$([^$\n]{1,40})\$/g, '$1')).filter(s => s && !/^[。．.」』、，*\s]+$/.test(s))
     .filter(s => !/^(🏷️?|📄)?\s*(Page|頁碼|頁數)\s*[:：]?\s*\d+\s*$/i.test(s) && !/^[^：:]{1,10}[：:]\s*[。．.]?\s*$/.test(s) && !/^🏷️?\s*[:：]/.test(s));
   if (!rows.length) return '';
-  return `<aside class="status">${rows.map(r => {
+  return `<aside class="status"${part ? ` data-part="${part}"` : ''}>${rows.map(r => {
     const m = r.match(/^([^：:]{1,14}?)\s*[:：]\s*([\s\S]*)$/);
     const [k, v] = m ? [m[1], m[2]] : ['', r];
     return `<p>${k ? `<span class="k">${esc(k.replace(/\*\*/g, ''))}</span> ` : ''}${esc(v).replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/\*\*/g, '').replace(/\[([^\]]+)\]|『([^』]+)』/g, (_, a, b) => `<span class="thought">${a ?? '『' + b + '』'}</span>`)}</p>`;
@@ -758,6 +767,28 @@ function renderChapters() {
     `<label for="ch${i}"><span>第${zh(i + 1)}章<small>${fmtDate(tw(c[0].time))}</small></span><input type="text" id="ch${i}" data-key="${esc(c[0].time)}" placeholder="第${zh(i + 1)}章" value="${esc(S.chapterNames[c[0].time] || '')}"></label>`).join('');
 }
 
+// 狀態欄：改過的照改過的字重排（一行一列，「標籤：值」），沒改過的照原文整理；整段刪光就不印
+function card(part, raw, ed) {
+  if (!S.style.showStatus) return '';
+  if (ed[part] != null) return ed[part].trim() ? statusCard(lines(ed[part]), part) : '';
+  return raw ? statusCard(raw, part) : '';
+}
+// 編輯中的狀態欄存回純文字：一列一行，標籤跟值中間補回「：」，心聲補回方括號
+function statusText(aside) {
+  const rows = [];
+  for (const row of aside.children) {
+    let k = '', v = '';
+    for (const n of row.childNodes) {
+      if (n.nodeType === 3) { v += n.nodeValue; continue; }
+      if (n.classList?.contains('k')) { k = n.textContent.trim(); continue; }
+      const tx = n.textContent;
+      v += n.classList?.contains('thought') && !/^『/.test(tx) ? `[${tx}]` : tx;
+    }
+    v = v.trim(); if (!k && !v) continue;
+    rows.push(k ? `${k}：${v}` : v);
+  }
+  return rows.join('\n');
+}
 // 書的內容：預覽與 EPUB 用同一份 HTML
 function chapterHTML(i) {
   const m = meta(), c = S.book.chapters[i], title = S.chapterNames[c[0].time] || `第${zh(i + 1)}章`;
@@ -765,7 +796,7 @@ function chapterHTML(i) {
     const { scene, body, status, statusTop } = splitReply(t.html), ed = S.edits[t.time] || {};
     const you = !t.meta && !t.card
       ? `<div class="you"><p class="who">${esc(m.userName || '我')}</p><div class="said" data-part="user">${lines(ed.user ?? t.user)}</div></div>` : '';
-    return `<div class="turn" data-t="${esc(t.time)}">${you}${scene ? `<p class="scene">${esc(scene)}</p>` : ''}${S.style.showStatus && statusTop ? statusCard(statusTop) : ''}<div class="body" data-part="body">${ed.body ?? (S.style.tidy ? tidy(clean(body)) : clean(body))}</div>${S.style.showStatus && status ? statusCard(status) : ''}</div>`;
+    return `<div class="turn" data-t="${esc(t.time)}">${you}${scene ? `<p class="scene">${esc(scene)}</p>` : ''}${card('statusTop', statusTop, ed)}<div class="body" data-part="body">${ed.body ?? (S.style.tidy ? tidy(clean(body)) : clean(body))}</div>${card('status', status, ed)}</div>`;
   }).join('\n');
   return { title, html: `<div class="chapter-open"><p class="no">第 ${zh(i + 1)} 章</p><h1 data-part="chtitle" data-key="${esc(c[0].time)}">${esc(title)}</h1><p class="when">${fmtDate(tw(c[0].time))}</p></div>\n${body}\n<p class="orn">・・・</p>` };
 }
@@ -926,7 +957,9 @@ $('flow').addEventListener('focusout', e => {
   } else {
     const t = el.closest('.turn')?.dataset.t; if (!t) return;
     const ed = S.edits[t] = S.edits[t] || {};
-    if (part === 'user') ed.user = el.innerText.trim(); else ed.body = clean(el.innerHTML);
+    if (part === 'user') ed.user = el.innerText.trim();
+    else if (part === 'status' || part === 'statusTop') ed[part] = statusText(el);
+    else ed.body = clean(el.innerHTML);
   }
   persistSoon();
   const flow = $('flow'); pages = Math.max(1, Math.round((flow.scrollWidth + 60) / (flow.clientWidth + 60))); turn(0);
