@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1f6f5a">
+<meta name="description" content="給新手玩家的 AI 看的：選電腦跟 AI，生出一整段指令，讓 Claude Code 或 Codex 把 SillyTavern 架上 Railway、接好 Vertex 金鑰。">
+<title>酒館上雲說明書</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+/* 版面：單欄、65 字寬的說明＋一個選項面板，按了就生出整段要貼給 AI 的指令。 */
+:root {
+  --bg: #f6f4ef; --fg: #1f2a24; --mute: #5f6b63; --line: #d9d4c8;
+  --card: #ffffff; --accent: #1f6f5a; --accent-ink: #ffffff; --warn: #9a4a1f; --warn-bg: #fbeee3;
+  --code-bg: #15201b; --code-fg: #e7efe9;
+  --serif: "Noto Serif TC", "Songti TC", Georgia, serif; --sans: "Noto Sans TC", "PingFang TC", system-ui, sans-serif; --mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #141917; --fg: #e8ebe6; --mute: #9aa69e; --line: #2c3530; --card: #1b2320; --accent: #6fc3a6; --accent-ink: #0f1a15; --warn: #f0b27a; --warn-bg: #2b211a; --code-bg: #0d1310; --code-fg: #dfe8e2; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #141917; --fg: #e8ebe6; --mute: #9aa69e; --line: #2c3530; --card: #1b2320; --accent: #6fc3a6; --accent-ink: #0f1a15; --warn: #f0b27a; --warn-bg: #2b211a; --code-bg: #0d1310; --code-fg: #dfe8e2; color-scheme: dark; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.75; font-size: 15.5px; }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 36px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-family: var(--serif); font-size: clamp(28px, 5vw, 40px); line-height: 1.2; margin: 0 0 8px; text-wrap: balance; }
+.lede { color: var(--mute); margin: 0 0 28px; max-width: 62ch; }
+h2 { font-size: 18px; margin: 34px 0 10px; }
+h3 { font-size: 15.5px; margin: 20px 0 6px; }
+p { margin: 0 0 10px; max-width: 68ch; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 14px; display: grid; gap: 16px; }
+.row { display: grid; gap: 6px; }
+.row > span { font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg label { border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; font-size: 14.5px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg input:checked + label, .seg label:has(input:checked) { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+button { font: inherit; border: 0; border-radius: 10px; padding: 10px 16px; cursor: pointer; background: var(--accent); color: var(--accent-ink); font-weight: 500; }
+button.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.status { font-size: 13.5px; color: var(--mute); }
+textarea { width: 100%; min-height: 360px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--code-bg); color: var(--code-fg); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; resize: vertical; }
+.hand { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 4px 16px; }
+.hand ol { padding-left: 1.3em; margin: 10px 0; }
+.hand li { margin: 6px 0; }
+.mines { display: grid; gap: 10px; }
+.mine { background: var(--warn-bg); border-left: 3px solid var(--warn); border-radius: 0 10px 10px 0; padding: 10px 14px; }
+.mine b { display: block; color: var(--warn); font-size: 14px; }
+.mine span { font-size: 14px; }
+code { font-family: var(--mono); font-size: .92em; background: color-mix(in srgb, var(--fg) 8%, transparent); padding: 1px 5px; border-radius: 5px; }
+small.foot { display: block; color: var(--mute); margin-top: 36px; font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <h1>酒館上雲說明書</h1>
+  <p class="lede">給新手玩家的 AI 看的：選好電腦跟 AI，按一下，把生出來的整段指令貼給你的 Claude Code 或 Codex，它會自己把 SillyTavern 架上 Railway、把 Google 的金鑰接好。你只在刷卡、登入那幾步出手。</p>
+
+  <div class="panel" id="panel">
+    <div class="row"><span>你的電腦</span><div class="seg">
+      <label><input type="radio" name="os" value="mac" id="os-mac" checked>Mac</label>
+      <label><input type="radio" name="os" value="win" id="os-win">Windows</label>
+    </div></div>
+    <div class="row"><span>你用的 AI</span><div class="seg">
+      <label><input type="radio" name="ai" value="claude" id="ai-claude" checked>Claude Code</label>
+      <label><input type="radio" name="ai" value="codex" id="ai-codex">Codex</label>
+    </div></div>
+    <div class="row"><span>Google 那邊</span><div class="seg">
+      <label><input type="radio" name="gc" value="fresh" id="gc-fresh" checked>這個 Google 帳號沒用過 Google Cloud</label>
+      <label><input type="radio" name="gc" value="used" id="gc-used">用過了，或想拿 $300 試用額度</label>
+    </div></div>
+    <div class="row"><span>要做哪些</span><div class="seg">
+      <label><input type="checkbox" id="do-railway" checked>架酒館（Railway）</label>
+      <label><input type="checkbox" id="do-vertex" checked>申請 Vertex 金鑰</label>
+      <label><input type="checkbox" id="do-ext" checked>裝推薦的擴充＋Gemini 4 Argon 腳本</label>
+    </div></div>
+    <div class="actions">
+      <button id="gen">生出要貼給 AI 的指令</button>
+      <button class="ghost" id="copy" hidden>複製整段</button>
+      <span class="status" id="status"></span>
+    </div>
+  </div>
+
+  <h2 id="out-h" hidden>貼給你的 AI</h2>
+  <textarea id="out" hidden spellcheck="false" aria-label="要貼給 AI 的指令"></textarea>
+
+  <h2>玩家要做的事</h2>
+  <div class="hand" id="hand"></div>
+
+  <h2>裝好酒館之後推薦的擴充</h2>
+  <p>推薦裝的十三個，全部寫進上面的指令，AI 會幫你裝；裝不了就帶你在酒館裡一個一個貼網址。最後那支腳本是把 Gemini 4 Argon 加進模型選單。</p>
+  <div class="hand" id="ext"></div>
+
+  <h2>我們踩過的雷</h2>
+  <p>這些全部寫進了上面的指令，AI 會照著避。你看一遍，知道哪裡會出事。</p>
+  <div class="mines" id="mines"></div>
+
+  <small class="foot">露比 × 格，2026-10-20。資料來源：SillyTavern 設定文件、Railway CLI 5.71 的說明、Vertex AI 快速模式官方說明，加上我們自己從 2026 年 8 月到 10 月的日誌。</small>
+</div>
+
+<script>
+(() => {
+const $ = (s) => document.querySelector(s);
+const MINES = [
+  ['Railway 的「連結」是跟著資料夾走的', '在哪個資料夾跑 railway up，就推到那個資料夾連結的服務。我們曾經在錯的資料夾跑，把另一個專案推進酒館的服務，建置失敗。每次要部署之前先 railway status 看清楚。'],
+  ['沒掛磁碟，重新部署就全沒了', 'Railway 的容器檔案系統重新部署就清空。角色卡、對話、金鑰全在 /home/node/app/data，一定要在部署前把磁碟掛在那裡。我們有一台沒掛，重開連 commit 都不見。'],
+  ['部署看起來成功，其實沒換上去', '有兩次畫面寫 SUCCESS，網站還是舊的。部署完要真的打開網址、對一下版本（設定頁右下角），不要只看綠燈。'],
+  ['對外開放時酒館會拒絕啟動', 'SILLYTAVERN_LISTEN=true 又沒有任何保護（白名單、基本驗證、帳號模式），伺服器直接不起來。Railway 上一定要關白名單、開基本驗證。'],
+  ['密碼不要寫在指令列', '放在命令列參數的密碼，同一台電腦任何程式都看得到。密碼用 Railway 變數設，AI 不要把它印在畫面上。'],
+  ['Vertex 的區域會缺模型', '我們的專案建在 asia-southeast1，新的生圖模型（gemini-2.5-flash-image）在那裡 404。酒館裡的區域填 us-central1 或 global，不要照預設。'],
+  ['酒館的模型下拉是寫死的', '新模型（例如 Gemini 4 Argon，2026-10-20 查過正式版 1.19.0 跟 staging 都還沒有）不在清單裡，要在下拉下面那格手打模型 ID；Argon 在快速模式有時還叫不到，先用 3.1 試通再換。'],
+  ['Vertex 加串流會回空白', '請求跑完、紀錄零錯誤，但一個字都沒有。碰到就把「串流」關掉；每次換預設檔它可能又被打開。'],
+  ['快速模式的免費層只給「沒用過 Google Cloud」的帳號', '官方寫明：免費層給新用戶、不用填帳單資料、最多 90 天；已經是 Google Cloud 用戶的帳號沒有這 90 天，要改走 $300 試用（要信用卡）。$300 試用期間不會扣款：額度用完或 90 天到，試用帳戶自動關閉、計費停掉；只有自己按「啟用」升級成付費帳戶之後，超過額度的才會刷卡。升級了就設一個預算警示。'],
+  ['擴充的資料夾不要多包一層', '酒館讀 extensions/ 底下每一個資料夾、自己加 third-party/ 前綴。我們曾經把十三個擴充 clone 進 extensions/third-party/ 裡，變成兩層，一個都沒被讀到。用終端機裝的話，資料夾直接放在 extensions/ 底下。'],
+];
+const EXT = [
+  ['JS-Slash-Runner（酒館助手）', 'https://github.com/N0VI028/JS-Slash-Runner', '跟腳本、狀態欄、小手機都靠它，先裝'],
+  ['brume-phone（霧語）', 'https://github.com/lubiyu0307-prog/brume-phone', '露比做的小手機：LINE、IG、脆、相本、音樂'],
+  ['st-brume', 'https://github.com/lubiyu0307-prog/st-brume', '露比做的美化介面。想要再裝；美化介面只能開一個，已經裝了別人的主題就先關掉，兩個一起開會打架'],
+  ['SillyTavern-MemoryBooks（記憶書）', 'https://github.com/aikohanasaki/SillyTavern-MemoryBooks', '對話自動整理成記憶寫進世界書'],
+  ['ST-Prompt-Template', 'https://github.com/zonde306/ST-Prompt-Template/', '預設檔裡的模板語法，很多卡要它'],
+  ['SillyTavern-ChatCompletionTabs', 'https://github.com/RivelleDays/SillyTavern-ChatCompletionTabs', '預設面板分頁，好找'],
+  ['Extension-TopInfoBar', 'https://github.com/SillyTavern/Extension-TopInfoBar', '最上面一條快速切角色、聊天'],
+  ['SillyTavern-ReloadButton', 'https://github.com/Minijinai75/SillyTavern-ReloadButton', '一鍵重新整理'],
+  ['Extension-ScreenShare', 'https://github.com/SillyTavern/Extension-ScreenShare', '官方：把螢幕畫面給模型看'],
+  ['Extension-Silence', 'https://github.com/SillyTavern/Extension-Silence', '官方小工具'],
+  ['Acsus-Paws-Puffs', 'https://github.com/Hmkovo/Acsus-Paws-Puffs', '推薦擴充'],
+  ['cocktail', 'https://github.com/Lianues/cocktail', '推薦擴充'],
+  ['cocktail-plus', 'https://github.com/Lianues/cocktail-plus', '推薦擴充'],
+];
+const ARGON = `// 酒館還沒內建 Gemini 4 Argon，先自己加進 Vertex 的模型選單（酒館更新內建後可以關掉）
+// 開頁時選單裡還沒有這個選項，存著的模型會被清成空白，送出去就會「Could not get a reply」。
+// 所以選項補上之後：存的是空白或不認得的值，就選回 Argon，並讓酒館真的存起來。
+// 酒館的設定可能比這支腳本晚載入，所以前兩分鐘每秒檢查一次，直到真的存成 Argon 或別的有效模型
+(() => {
+  const d = window.parent.document;
+  const fix = () => {
+    const sel = d.querySelector('#model_vertexai_select');
+    if (!sel) return false;
+    if (!sel.querySelector('option[value="gemini-4-argon"]')) {
+      const g = d.createElement('optgroup'); g.label = 'Gemini 4';
+      g.innerHTML = '<option value="gemini-4-argon">gemini-4-argon</option>';
+      sel.prepend(g);
+    }
+    const o = window.parent.SillyTavern?.getContext?.().chatCompletionSettings;
+    if (!o) return false;
+    const want = o.vertexai_model;
+    const known = want && [...sel.options].some(x => x.value === want);
+    if (known && want !== 'gemini-4-argon') return true; // 玩家選了別的模型，不動
+    if (want === 'gemini-4-argon' && sel.value === want) return true;
+    sel.value = 'gemini-4-argon';
+    const $ = window.parent.jQuery;
+    if ($) $(sel).trigger('change'); else sel.dispatchEvent(new Event('change', { bubbles: true }));
+    return o.vertexai_model === 'gemini-4-argon';
+  };
+  let n = 0; const t = setInterval(() => { if (fix() || ++n > 120) clearInterval(t); }, 1000);
+})();`;
+const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+$('#ext').innerHTML = `<ol>${EXT.map(([n, u, w]) => `<li><b>${esc(n)}</b> — ${esc(w)}<br><code>${esc(u)}</code></li>`).join('')}</ol><p><b>Gemini 4 Argon 選項</b>（酒館助手的全域腳本）：</p><textarea readonly style="min-height:220px">${esc(ARGON)}</textarea>`;
+const HAND = [
+  '裝工具時系統跳出密碼框：玩家輸入電腦的登入密碼（AI 看不到也不該看）。',
+  'Railway 登入：AI 會開瀏覽器，玩家用 GitHub 或 Email 登入、按一下允許。Railway 的 Hobby 方案要綁信用卡（每月 5 美金起），卡號玩家自己在網頁上填。',
+  '酒館的帳號密碼：AI 會請玩家自己想一組，直接填進 Railway 的變數頁，不要貼在對話裡。',
+  'Google 帳號登入、同意條款：瀏覽器裡的每一個「我同意」都要玩家按。走 $300 試用的話，信用卡與稅務資訊也是玩家填（個人選「未登記稅籍的個人」）。帶截圖的圖文版在這裡：<a href="https://lubiyu0307-prog.github.io/rp-book/vertex-credits.html" target="_blank" rel="noopener">Google Cloud $300 抵免額 × Vertex AI API 金鑰申請教學</a>。',
+  '最後一步：打開酒館網址，用剛才的帳號密碼登入，傳一句話給任何角色，看有沒有回。',
+];
+$('#mines').innerHTML = MINES.map(([t, d]) => `<div class="mine"><b>${t}</b><span>${d}</span></div>`).join('');
+$('#hand').innerHTML = `<ol>${HAND.map((h) => `<li>${h}</li>`).join('')}</ol>`;
+
+function build() {
+  const os = $('#os-win').checked ? 'win' : 'mac';
+  const ai = $('#ai-codex').checked ? 'codex' : 'claude';
+  const gc = $('#gc-used').checked ? 'used' : 'fresh';
+  const doRailway = $('#do-railway').checked; const doVertex = $('#do-vertex').checked; const doExt = $('#do-ext').checked;
+  const AI = ai === 'codex' ? 'Codex' : 'Claude Code';
+  const OS = os === 'win' ? 'Windows' : 'Mac';
+  const sh = os === 'win' ? 'PowerShell' : '終端機';
+  const L = [];
+  L.push(`你是 ${AI}，跑在玩家這台 ${OS} 電腦的${sh}裡。玩家是完全的新手，這份是給你看的工單：從頭到尾由你動手，只有標「【玩家出手】」的地方才停下來請玩家做，做完你繼續。每完成一個階段，用一兩句白話回報進度。`);
+  L.push(`
+## 做事的規矩
+- 一次一步，每一步做完自己驗證（指令回傳成功、網址打得開），再往下。
+- 出錯就讀錯誤訊息自己修，連修三次不行再問玩家，問的時候講白話、一次只問一件事。
+- 需要瀏覽器登入、按同意、刷卡、輸入驗證碼、想密碼：停下來，用一句話告訴玩家要去哪裡按什麼，等他說好了再繼續。
+- 任何金鑰、密碼都不印在畫面上、不寫進檔案、不貼回對話。密碼讓玩家自己填進 Railway 的網頁變數頁。
+- 指令的旗標不確定就先跑 --help 看一眼，不要猜。
+- 下面「我們踩過的雷」每一條都要照著避。`);
+  L.push(`
+## 我們踩過的雷（一定照避）
+${MINES.map(([t, d], i) => `${i + 1}. ${t}：${d}`).join('\n')}`);
+  L.push(`
+## 第一階段：把電腦準備好
+${os === 'win'
+  ? `1. 開 PowerShell。先 \`node -v\`、\`git --version\` 看有沒有；沒有就 \`winget install OpenJS.NodeJS.LTS\` 與 \`winget install Git.Git\`，裝完關掉 PowerShell 重開一次再驗。
+2. \`npm install -g @railway/cli\`，然後 \`railway --version\` 要印得出版本（我們用的是 5.71）。
+3. winget 或 npm 跳權限視窗【玩家出手】：請玩家按「是」。`
+  : `1. 開終端機。先 \`node -v\`、\`git --version\` 看有沒有；沒有就裝 Homebrew（官網那行指令），再 \`brew install node git\`。
+2. \`npm install -g @railway/cli\`，然後 \`railway --version\` 要印得出版本（我們用的是 5.71）。
+3. 系統要電腦密碼時【玩家出手】：請玩家自己輸入，你不要問密碼是什麼。`}`);
+  if (doRailway) L.push(`
+## 第二階段：Railway 開一個專案
+1. 建一個乾淨的資料夾專門放這個專案（例如 \`~/tavern\`），\`cd\` 進去。之後所有 railway 指令都在這個資料夾跑（雷 1）。
+2. \`railway login\`【玩家出手】：會開瀏覽器，請玩家用 GitHub 或 Email 登入 Railway、按允許。Railway 的 Hobby 方案每月 5 美金起、要綁卡，卡號請玩家自己在 Railway 網頁上填，你不經手。
+3. \`railway init\`，專案名叫 tavern（名字玩家可以改）。
+4. 每做一步前 \`railway status\` 確認連的是這個專案、這個服務。
+
+## 第三階段：把 SillyTavern 架上去
+1. 用官方映像直接開服務，不用自己建置：
+   \`railway add --service tavern --image ghcr.io/sillytavern/sillytavern:latest\`
+   （旗標先 \`railway add --help\` 對一次。）
+2. 先掛磁碟再讓它跑起來（雷 2）：\`railway volume add --mount-path /home/node/app/data\`。磁碟一定要在這個路徑，酒館的角色、對話、金鑰全在裡面。
+3. 設變數（\`railway variable set\` 一個一個設，或請玩家在 Railway 網頁的 Variables 頁貼）：
+   - \`SILLYTAVERN_LISTEN=true\`
+   - \`SILLYTAVERN_WHITELISTMODE=false\`
+   - \`SILLYTAVERN_BASICAUTHMODE=true\`
+   - \`SILLYTAVERN_BASICAUTHUSER_USERNAME=\`（玩家想一個）
+   - \`SILLYTAVERN_BASICAUTHUSER_PASSWORD=\`（玩家想一個，要夠長）
+   - \`PORT=8000\`
+   帳號密碼這兩個【玩家出手】：請玩家自己到 Railway 網頁 → 這個服務 → Variables 填，不要在對話裡講出來（雷 5）。酒館的規則是環境變數用 SILLYTAVERN_ 前綴、巢狀用底線相接；如果部署紀錄顯示基本驗證沒生效，改試 SILLYTAVERN_BASICAUTHUSER__USERNAME（兩個底線）那種寫法，二選一以紀錄為準。
+4. \`railway domain\` 產生網址；問到埠號就填 8000。
+5. 等部署跑完，\`railway logs\` 看最後幾行有沒有「listening」之類的字；有「security」「refuse」就是變數沒設對（雷 4）。
+6. 驗收【玩家出手】：請玩家在瀏覽器打開那個網址，用剛才的帳號密碼登入，看到酒館的畫面才算（雷 3：不要只看部署綠燈）。進去之後設定頁右下角有版本號，記下來。
+7. 之後要更新酒館：Railway 網頁上這個服務按 Redeploy，映像會拉最新的 release；磁碟還在，資料不會掉。`);
+  if (doVertex) L.push(`
+## 第四階段：拿一把 Google 的金鑰（Vertex AI）
+${gc === 'fresh'
+  ? `這個 Google 帳號沒用過 Google Cloud，走「Vertex AI 快速模式」的免費層：不用信用卡、免費 90 天、有額度上限。
+1. 【玩家出手】請玩家用那個 @gmail.com 帳號打開 https://cloud.google.com/vertex-ai/generative-ai/docs/start/express-mode/overview ，照頁上的「免費試用 Vertex AI Studio」按進去，同意條款。
+2. 進去之後到 Vertex AI → 設定 → API 金鑰（或 Console 首頁的「建立 Gemini API 金鑰」），有黃色「啟用 API」橫幅就先按，再 Create API Key 建一把，複製下來【玩家出手】：金鑰只貼進酒館的設定頁，不要貼給你。如果「Create API Key」被鎖著，照下面「用過 Google Cloud」那條的第 2 到 4 步解鎖。
+3. 如果按下去被導去「$300 免費試用、要信用卡」的頁面，代表這個帳號不算新（雷 9）：請玩家決定要不要改走「用過 Google Cloud」那條路（$300 試用）。
+4. 快速模式沒有列模型的 API，酒館裡要自己打模型 ID（雷 7）。先用 gemini-2.5-flash 或 gemini-3.1-flash 測通，再換想用的。`
+  : `這個帳號用過 Google Cloud（或想拿 $300），走正常的 Google Cloud 試用：要信用卡（只是驗證，試用期間不扣款）、$300 額度、90 天；額度用完或到期試用帳戶會自動關閉，只有自己按「啟用」升級成付費帳戶才會開始刷卡（雷 9）。
+這條路有一份帶截圖的圖文教學，你先打開讀一遍，然後照它帶玩家（選單位置以它為準）：https://lubiyu0307-prog.github.io/rp-book/vertex-credits.html
+1. 【玩家出手】請玩家打開 https://cloud.google.com/ 登入，按「免費試用」。步驟 1／2：國家選台灣、同意並繼續。步驟 2／2：填聯絡資訊、新增付款方式（驗證用的卡）；中間跳出「台灣稅務資訊」，個人用戶選「未登記稅籍的個人」，存檔後不能改，別選錯。按「開始免費試用」，看到歡迎頁就成了（額度會顯示成台幣 NT$9,564，就是那筆 $300）。整段都是玩家自己填，你只在旁邊講下一步在哪。
+2. Google 對新帳號預設鎖著「建立 API 金鑰」，要先開鎖：【玩家出手】IAM 與管理 → 組織政策 → 表格上方的篩選框輸入 apikey → 點進 constraints/iam.managed.disableServiceAccountApiKeyCreation（「Block service account API key bindings」）。
+3. 「管理政策」是灰的就按提示框裡的「修正存取權」→「授予存取權」（Google 自己算好要補組織政策管理員這個角色，是玩家自己的組織，沒有安全問題），等一兩分鐘重新整理。
+4. 「管理政策」→ 政策來源選「覆寫父項政策」→「新增規則」→ 強制執行選「停用」→ 完成 →「設定政策」（確認視窗再按一次）。規則顯示「未強制執行」就成了，只解鎖這一個專案。
+5. 建金鑰：Console 首頁的「建立 Gemini API 金鑰」或 Vertex AI → 設定 → API 金鑰；上方有黃色「啟用 API」橫幅就先按一下，然後 Create API Key、取名、建立。複製金鑰【玩家出手】：只貼進酒館，不貼給你。建議回金鑰設定頁加 API 範圍限制，只允許 Vertex AI。
+6. 記下專案 ID（設定頁看得到），酒館裡有一格要填。
+7. 額度用到哪回 Console 首頁看那個圓圈（或帳單 → 總覽）。試用結束不會自動扣款；如果之後升級成付費帳戶，到「帳單 → 預算與警示」設一個警示，不想被扣款就到「帳單 → 帳戶管理」把專案的計費關掉（雷 9）。
+8. 區域：之後酒館裡填 us-central1 或 global，不要用 asia 開頭的（雷 6）。`}`);
+  if (doExt) L.push(`
+## 第五階段：裝推薦的擴充＋ Gemini 4 Argon 腳本
+擴充就是酒館的外掛。這十三個是推薦裝的，照順序裝（第一個酒館助手最重要，後面的腳本要靠它）：
+${EXT.map(([n, u, w], i) => `${i + 1}. ${n}｜${u}｜${w}`).join('\n')}
+
+特別注明：st-brume 是美化介面，想要再裝；美化介面類的擴充同時只能開一個，玩家如果已經裝了別人的主題，裝這個之前先把那個關掉，不然會打架。
+
+A. 先試在終端機自己裝：\`railway ssh --help\` 先看一眼，然後 \`railway ssh\` 進容器（連的要是 tavern 這個服務），\`cd /home/node/app/data/default-user/extensions\`，每個網址 \`git clone\` 一次。資料夾直接落在 extensions/ 底下，不要再包一層 third-party/（雷 10）。容器裡沒有 git、ssh 連不上、或資料夾找不到，就改走 B。
+   裝完【玩家出手】請玩家重新整理酒館，上排「擴充功能」（三個方塊的圖示）→「管理擴充功能」裡應該十三個都在，每一個都要打勾啟用。
+B. 【玩家出手】酒館 →「擴充功能」→「安裝擴充功能」→ 貼一個網址 → 安裝，十三個一個一個來。你一次念一個網址給玩家，裝完一個再念下一個。
+
+Gemini 4 Argon 選項（酒館自己的模型選單還沒有它，這支腳本把它加進去）：
+【玩家出手】擴充功能 → 酒館助手 → 腳本庫 → 全域腳本 → 新增，名字「Gemini 4 Argon 選項」，內容貼下面這整段（你把它印給玩家複製），存檔、打開開關，再重新整理酒館。之後 API 連線頁 Vertex 的模型選單最上面會多一組「Gemini 4」。酒館哪天內建了，把腳本關掉就好。
+\`\`\`js
+${ARGON}
+\`\`\``);
+  L.push(`
+## 第${doExt ? '六' : '五'}階段：在酒館裡接上
+1. 【玩家出手】打開酒館 → 左上第二個圖示「API 連線」→ API 選「Chat Completion」→ 來源選「Google Vertex AI」。
+2. 驗證方式選「快速模式／API 金鑰」（Express mode），金鑰貼進去${gc === 'used' ? '，專案 ID 填剛才記的那個' : ''}。區域填 us-central1，不通再試 global（雷 6）。
+3. 模型：清單裡有就選，沒有就在清單下面那格手打 ID（雷 7）。先 gemini-2.5-flash 或 gemini-3.1-flash 測，按「連線」要看到綠燈。
+4. 傳一句話給任何角色。如果請求跑完卻一個字都沒有：到「AI 回應設定」把「串流」關掉再試（雷 8）。
+5. 以上每一步都在玩家的瀏覽器裡做，你用文字帶他；他截圖給你就幫他看。
+
+## 完成的樣子
+- Railway 上一個 tavern 服務，有磁碟掛在 /home/node/app/data，網址打得開、要帳號密碼。
+- 酒館裡 Vertex 連線綠燈，角色回得了話。${doExt ? '\n- 十三個擴充都在管理擴充功能裡、開著；酒館助手裡有「Gemini 4 Argon 選項」這支腳本，Vertex 的模型選單看得到 gemini-4-argon。' : ''}
+- 玩家手上：酒館網址、酒館帳號密碼（他自己記）、Google 金鑰（只在酒館裡）。
+- 你最後回報一次：哪些做完了、哪一步是玩家自己做的、還有什麼要注意（試用到期日、預算警示）。`);
+  return L.join('\n');
+}
+
+$('#gen').addEventListener('click', () => {
+  const text = build();
+  $('#out').value = text; $('#out').hidden = false; $('#out-h').hidden = false; $('#copy').hidden = false;
+  $('#status').textContent = `${text.length} 字，全選複製貼給 AI 就好`;
+  $('#out').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+$('#copy').addEventListener('click', async () => {
+  const ta = $('#out');
+  try { await navigator.clipboard.writeText(ta.value); $('#status').textContent = '複製好了'; }
+  catch { ta.focus(); ta.select(); $('#status').textContent = '自動複製不行，已經全選，按 Ctrl/⌘+C'; }
+});
+for (const el of document.querySelectorAll('#panel input')) el.addEventListener('change', () => { if (!$('#out').hidden) $('#gen').click(); });
+})();
+</script>
+</body>
+</html>
