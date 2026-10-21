@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#1f6f5a">
+<meta name="description" content="給玩家的 AI 看的：酒館已經在 Zeabur 上跑，想整個搬到 Railway。選好電腦跟 AI，生出一整段指令，讓 Claude Code 或 Codex 把角色、對話、設定、擴充、金鑰原封不動搬過去。">
+<title>酒館搬家說明書</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+/* 跟《酒館上雲說明書》同一套版面：單欄說明＋一個選項面板，按了就生出整段要貼給 AI 的指令。 */
+:root {
+  --bg: #f6f4ef; --fg: #1f2a24; --mute: #5f6b63; --line: #d9d4c8;
+  --card: #ffffff; --accent: #1f6f5a; --accent-ink: #ffffff; --warn: #9a4a1f; --warn-bg: #fbeee3;
+  --code-bg: #15201b; --code-fg: #e7efe9; --go: #c2552c; --go-ink: #ffffff;
+  --serif: "Noto Serif TC", "Songti TC", Georgia, serif; --sans: "Noto Sans TC", "PingFang TC", system-ui, sans-serif; --mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #141917; --fg: #e8ebe6; --mute: #9aa69e; --line: #2c3530; --card: #1b2320; --accent: #6fc3a6; --accent-ink: #0f1a15; --warn: #f0b27a; --warn-bg: #2b211a; --code-bg: #0d1310; --code-fg: #dfe8e2; --go: #f29b6a; --go-ink: #2a1208; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #141917; --fg: #e8ebe6; --mute: #9aa69e; --line: #2c3530; --card: #1b2320; --accent: #6fc3a6; --accent-ink: #0f1a15; --warn: #f0b27a; --warn-bg: #2b211a; --code-bg: #0d1310; --code-fg: #dfe8e2; --go: #f29b6a; --go-ink: #2a1208; color-scheme: dark; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.75; font-size: 15.5px; }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 36px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-family: var(--serif); font-size: clamp(28px, 5vw, 40px); line-height: 1.2; margin: 0 0 8px; text-wrap: balance; }
+.lede { color: var(--mute); margin: 0 0 28px; max-width: 62ch; }
+h2 { font-size: 18px; margin: 34px 0 10px; }
+p { margin: 0 0 10px; max-width: 68ch; }
+a { color: var(--accent); }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 14px; display: grid; gap: 16px; }
+.row { display: grid; gap: 6px; }
+.row > span { font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg label { border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; font-size: 14.5px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+button { font: inherit; border: 0; border-radius: 10px; padding: 10px 16px; cursor: pointer; background: var(--accent); color: var(--accent-ink); font-weight: 500; }
+button#gen { background: var(--go); color: var(--go-ink); }
+button#gen:focus-visible { outline-color: var(--go); }
+button.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.status { font-size: 13.5px; color: var(--mute); }
+textarea { width: 100%; min-height: 360px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--code-bg); color: var(--code-fg); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; resize: vertical; }
+.hand { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 4px 16px; }
+.hand ol { padding-left: 1.3em; margin: 10px 0; }
+.hand li { margin: 6px 0; }
+.mines { display: grid; gap: 10px; }
+.mine { background: var(--warn-bg); border-left: 3px solid var(--warn); border-radius: 0 10px 10px 0; padding: 10px 14px; }
+.mine b { display: block; color: var(--warn); font-size: 14px; }
+.mine span { font-size: 14px; }
+code { font-family: var(--mono); font-size: .92em; background: color-mix(in srgb, var(--fg) 8%, transparent); padding: 1px 5px; border-radius: 5px; }
+small.foot { display: block; color: var(--mute); margin-top: 36px; font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <h1>酒館搬家說明書</h1>
+  <p class="lede">給玩家的 AI 看的：你的 SillyTavern 已經在 Zeabur 上跑，想整個搬到 Railway。選好電腦跟 AI，按一下，把生出來的整段指令貼給你的 Claude Code 或 Codex，它會把角色、對話、預設、擴充、金鑰原封不動搬過去。你只在登入、按同意、下載上傳那幾步出手。還沒架過酒館的人請走<a href="https://lubiyu0307-prog.github.io/rp-book/tavern-cloud.html">《酒館上雲說明書》</a>。</p>
+
+  <div class="panel" id="panel">
+    <div class="row"><span>你的電腦</span><div class="seg">
+      <label><input type="radio" name="os" value="mac" id="os-mac" checked>Mac</label>
+      <label><input type="radio" name="os" value="win" id="os-win">Windows</label>
+    </div></div>
+    <div class="row"><span>你用的 AI</span><div class="seg">
+      <label><input type="radio" name="ai" value="claude" id="ai-claude" checked>Claude Code</label>
+      <label><input type="radio" name="ai" value="codex" id="ai-codex">Codex</label>
+    </div></div>
+    <div class="row"><span>Railway 那邊</span><div class="seg">
+      <label><input type="radio" name="rw" value="new" id="rw-new" checked>還沒有酒館，要從頭架</label>
+      <label><input type="radio" name="rw" value="have" id="rw-have">已經架好一個空的酒館</label>
+    </div></div>
+    <div class="row"><span>要搬多少</span><div class="seg">
+      <label><input type="radio" name="scope" value="all" id="scope-all" checked>整個資料夾一次搬（推薦）</label>
+      <label><input type="radio" name="scope" value="ui" id="scope-ui">只搬角色跟對話（Zeabur 的指令面板用不了時）</label>
+    </div></div>
+    <div class="actions">
+      <button id="gen">生出要貼給 AI 的指令</button>
+      <button class="ghost" id="copy" hidden>複製整段</button>
+      <span class="status" id="status"></span>
+    </div>
+  </div>
+
+  <h2 id="out-h" hidden>貼給你的 AI</h2>
+  <textarea id="out" hidden spellcheck="false" aria-label="要貼給 AI 的指令"></textarea>
+
+  <h2>搬家的原理</h2>
+  <p>酒館的一切都在一個資料夾裡：<code>data/</code>。角色卡、對話、預設、世界書、擴充、酒館助手的腳本、連線用的金鑰，全部在裡面。所以搬家就是三件事：在 Zeabur 把這個資料夾打包下載、在 Railway 架一個空的酒館、把包解開放回同一個位置。酒館重開就會認得。</p>
+
+  <h2>玩家要做的事</h2>
+  <div class="hand" id="hand"></div>
+
+  <h2>我們踩過的雷</h2>
+  <p>這些全部寫進了上面的指令，AI 會照著避。你看一遍，知道哪裡會出事。</p>
+  <div class="mines" id="mines"></div>
+
+  <small class="foot">露比 × 格，2026-10-21。資料來源：SillyTavern 原始碼（release 分支的 users.js：<code>/user/files/</code> 路徑直接對到每個使用者的 user/files 資料夾）、Zeabur 官方文件（檔案管理、命令執行、持久儲存空間，2026 年 3～5 月版）、Railway CLI 5.71 的說明，加上我們自己從 2026 年 8 月到 10 月的日誌。《酒館上雲說明書》在 <a href="https://lubiyu0307-prog.github.io/rp-book/tavern-cloud.html">這裡</a>。</small>
+</div>
+
+<script>
+(() => {
+const $ = (s) => document.querySelector(s);
+const MINES = [
+  ['先確認 Zeabur 的資料夾到底在哪', '官方 Docker 映像的資料在 /home/node/app/data、設定在 /home/node/app/config；但 Zeabur 的模板不一定照官方路徑。打包之前先 ls 一次，找不到就用 find 找 default-user 這個資料夾，以找到的為準。'],
+  ['備份檔裡有金鑰跟對話', '打包出來的檔案含 secrets.json（你的 Google 金鑰）跟全部聊天紀錄。只放在自己電腦上傳，不要丟到公開網址；如果不得已用雲端硬碟分享連結，搬完立刻關掉分享、刪掉檔案。放在酒館 user/files 裡的那一份，搬完也要刪。'],
+  ['Zeabur 的檔案管理一次只能一個檔、不能刪資料夾', '官方文件寫的。所以一定要先 tar 成一個檔再下載；刪資料夾要用「指令」面板跑 rm。'],
+  ['Zeabur 刪硬碟＝資料全清、無法恢復', '官方文件寫的。所以 Zeabur 那邊的服務跟硬碟，要等 Railway 上的酒館親眼看到角色、對話都在，而且用了幾天沒問題之後才刪。'],
+  ['Railway 的「連結」是跟著資料夾走的', '在哪個資料夾跑 railway 指令，就對到那個資料夾連結的服務。我們曾經在錯的資料夾跑，把另一個專案推進酒館的服務，建置失敗。每次要動之前先 railway status 看清楚。'],
+  ['沒掛磁碟，重新部署就全沒了', 'Railway 的容器檔案系統重新部署就清空。資料一定要在部署前把磁碟掛在 /home/node/app/data。我們有一台沒掛，重開連 commit 都不見。'],
+  ['解開的位置要剛好對上', 'tar 解開之後必須是 /home/node/app/data/default-user/…，多一層或少一層酒館都看不到。解之前先 tar tzf 看一眼包裡的路徑長怎樣，再決定 -C 要指到哪裡。'],
+  ['解開之後酒館可能寫不進去', '酒館在容器裡是用 node 這個使用者在跑，用 ssh 解開的檔案可能變成 root 的。搬完如果存設定、新對話都存不了，就 chown -R node:node /home/node/app/data 再重啟。'],
+  ['不要把 Zeabur 的 config.yaml 蓋到 Railway 上', 'Railway 上的酒館是用環境變數設定（監聽、基本驗證、白名單），config.yaml 用映像預設的就好。只搬 data/，不搬 config/。'],
+  ['版本不要倒退', 'Railway 用的是最新的官方映像；酒館新版啟動會自動把舊格式的資料升級，並在 backups/_migration 留一份。反過來（Zeabur 比 Railway 新）可能會壞。搬之前對一下兩邊的版本（設定頁右下角）。'],
+  ['對外開放時酒館會拒絕啟動', 'SILLYTAVERN_LISTEN=true 又沒有任何保護（白名單、基本驗證、帳號模式），伺服器直接不起來。Railway 上一定要關白名單、開基本驗證。'],
+  ['密碼不要寫在指令列', '放在命令列參數的密碼，同一台電腦任何程式都看得到。密碼用 Railway 變數設，AI 不要把它印在畫面上。'],
+  ['部署看起來成功，其實沒換上去', '有兩次畫面寫 SUCCESS，網站還是舊的。部署完要真的打開網址、對一下版本（設定頁右下角），不要只看綠燈。'],
+  ['Vertex 加串流會回空白', '請求跑完、紀錄零錯誤，但一個字都沒有。碰到就把「串流」關掉；每次換預設檔它可能又被打開。'],
+];
+const HAND = [
+  'Zeabur 的「服務狀態」分頁裡有兩個區塊：<b>指令</b>（打一行指令按 Enter）跟 <b>檔案</b>（看檔案、下載、拖曳上傳）。AI 會把要打的指令一行一行念給你，你貼進去、把輸出貼回來。',
+  '下載備份：AI 會給你一個網址（你的酒館網址加上 /user/files/備份檔名），用瀏覽器打開、登入酒館的帳號密碼就會下載；不行的話改在「檔案」區塊找到那個檔按下載。',
+  '裝工具時系統跳出密碼框：你輸入電腦的登入密碼（AI 看不到也不該看）。',
+  'Railway 登入：AI 會開瀏覽器，你用 GitHub 或 Email 登入、按一下允許。Railway 的 Hobby 方案要綁信用卡（每月 5 美金起），卡號你自己在網頁上填。',
+  '酒館的帳號密碼：你自己想一組，直接填進 Railway 的變數頁，不要貼在對話裡。可以跟 Zeabur 那邊一樣。',
+  '把備份上傳到新酒館：在 Railway 的酒館裡用「資料庫」（Data Bank，魔法棒選單裡）上傳那個檔；AI 之後從終端機解開。上傳不了就把檔案放雲端硬碟給 AI 一個下載連結，搬完立刻關掉。',
+  '最後一步：打開 Railway 的酒館網址登入，看角色、對話、預設、擴充都在，傳一句話給任何角色看有沒有回。都好了，再等幾天，才去 Zeabur 刪服務跟硬碟。',
+];
+const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+$('#mines').innerHTML = MINES.map(([t, d]) => `<div class="mine"><b>${esc(t)}</b><span>${esc(d)}</span></div>`).join('');
+$('#hand').innerHTML = `<ol>${HAND.map((h) => `<li>${h}</li>`).join('')}</ol>`;
+
+function build() {
+  const os = $('#os-win').checked ? 'win' : 'mac';
+  const ai = $('#ai-codex').checked ? 'codex' : 'claude';
+  const rwNew = $('#rw-new').checked;
+  const all = $('#scope-all').checked;
+  const AI = ai === 'codex' ? 'Codex' : 'Claude Code';
+  const OS = os === 'win' ? 'Windows' : 'Mac';
+  const sh = os === 'win' ? 'PowerShell' : '終端機';
+  const BK = 'tavern-backup.tgz';
+  const L = [];
+  let ph = 0; const P = () => `第${['一','二','三','四','五','六','七','八'][ph++]}階段`;
+  L.push(`你是 ${AI}，跑在玩家這台 ${OS} 電腦的${sh}裡。玩家的 SillyTavern（酒館）目前在 Zeabur 上跑，要整個搬到 Railway，角色、對話、預設、世界書、擴充、連線金鑰都要跟著走。這份是給你看的工單：從頭到尾由你動手，只有標「【玩家出手】」的地方才停下來請玩家做，做完你繼續。每完成一個階段，用一兩句白話回報進度。`);
+  L.push(`
+## 做事的規矩
+- 一次一步，每一步做完自己驗證（指令回傳成功、網址打得開、檔案大小合理），再往下。
+- 出錯就讀錯誤訊息自己修，連修三次不行再問玩家，問的時候講白話、一次只問一件事。
+- 需要瀏覽器登入、按同意、刷卡、下載、上傳、想密碼：停下來，用一句話告訴玩家要去哪裡按什麼，等他說好了再繼續。
+- Zeabur 那邊你碰不到終端機，全部靠玩家在 Zeabur 網頁的「指令」區塊幫你打：你一次念一行，請玩家把輸出貼回來，你看了再給下一行。
+- 任何金鑰、密碼都不印在畫面上、不寫進檔案、不貼回對話。密碼讓玩家自己填進 Railway 的網頁變數頁。
+- 備份檔含金鑰跟全部對話，只走玩家自己的電腦；不得已用雲端分享連結，搬完立刻請玩家關掉。
+- 指令的旗標不確定就先跑 --help 看一眼，不要猜。
+- Zeabur 上的東西在整件事做完、玩家確認之前，一個都不刪。
+- 下面「我們踩過的雷」每一條都要照著避。`);
+  L.push(`
+## 我們踩過的雷（一定照避）
+${MINES.map(([t, d], i) => `${i + 1}. ${t}：${d}`).join('\n')}`);
+  L.push(`
+## ${P()}：把電腦準備好
+${os === 'win'
+  ? `1. 開 PowerShell。先 \`node -v\`、\`git --version\` 看有沒有；沒有就 \`winget install OpenJS.NodeJS.LTS\` 與 \`winget install Git.Git\`，裝完關掉 PowerShell 重開一次再驗。
+2. \`npm install -g @railway/cli\`，然後 \`railway --version\` 要印得出版本（我們用的是 5.71）。
+3. winget 或 npm 跳權限視窗【玩家出手】：請玩家按「是」。`
+  : `1. 開終端機。先 \`node -v\`、\`git --version\` 看有沒有；沒有就裝 Homebrew（官網那行指令），再 \`brew install node git\`。
+2. \`npm install -g @railway/cli\`，然後 \`railway --version\` 要印得出版本（我們用的是 5.71）。
+3. 系統要電腦密碼時【玩家出手】：請玩家自己輸入，你不要問密碼是什麼。`}`);
+  if (all) L.push(`
+## ${P()}：在 Zeabur 把酒館打包
+全程在 Zeabur 網頁上做：【玩家出手】打開 Zeabur → 專案 → 酒館那個服務 →「服務狀態」分頁，裡面有「指令」區塊（打一行按 Enter）跟「檔案」區塊（看檔案、下載）。你念指令，玩家貼進「指令」執行、把輸出貼回來給你。
+1. 先對版本：請玩家開 Zeabur 的酒館，設定頁右下角的版本號抄給你。等一下 Railway 用最新映像，Zeabur 這邊不能比它新（雷 10）。
+2. 找資料夾（雷 1）：先 \`ls /home/node/app/data\`，看到 default-user 就對了。看不到就 \`find / -type d -name default-user 2>/dev/null\`，用找到的那個路徑的上一層當 DATA（下面都用 DATA 代表它，例如 /home/node/app/data）。
+3. 看大小：\`du -sh DATA\`。幾十 MB 到幾百 MB 都正常，幾 GB 的話先問玩家裡面是不是有大檔（影片、語音），可以的話先清。
+4. 打包放到酒館自己會對外提供的資料夾（酒館把 /user/files/ 這個網址直接對到 DATA/default-user/user/files）：
+   \`mkdir -p DATA/default-user/user/files && tar czf DATA/default-user/user/files/${BK} -C DATA --exclude='default-user/user/files/${BK}' default-user\`
+   然後 \`ls -la DATA/default-user/user/files/${BK}\` 確認檔案在、大小跟 du 看到的差不多（壓縮後會小一些）。有別的使用者資料夾（帳號模式開過）就把它們一起列在 default-user 後面。
+5. 下載【玩家出手】：請玩家用瀏覽器打開「酒館網址/user/files/${BK}」（例如 https://xxx.zeabur.app/user/files/${BK}），酒館要登入就登入，瀏覽器會把檔案存下來。下載不動的話改走 Zeabur「檔案」區塊：展開到 DATA/default-user/user/files，滑到 ${BK} 上按「下載」。
+6. 請玩家回報下載到的檔案大小，跟第 4 步 ls 看到的要一樣。不一樣就重下。
+7. 下載好之後先把 Zeabur 上那一份刪掉（它含金鑰，雷 2）：\`rm DATA/default-user/user/files/${BK}\`。Zeabur 的服務先留著不動（雷 4）。`);
+  else L.push(`
+## ${P()}：在 Zeabur 的酒館裡把東西匯出
+這條路搬不了預設、世界書之外的設定與擴充，只搬角色跟對話，玩家自己選的。全程在 Zeabur 那個酒館的網頁裡做，你用文字帶他：
+1. 角色：角色清單 → 每張卡的「匯出」（PNG 帶對話記錄請選含對話的那個選項）。一張一張存到電腦同一個資料夾。
+2. 預設檔：API 連線頁 →「預設檔」旁的匯出按鈕，存 JSON。
+3. 世界書：世界書面板 → 每本「匯出」。
+4. 設定備份：使用者設定頁最下面有「備份」或「下載設定」，有的話存一份。
+5. 連線金鑰不會跟著匯出，到時候 Railway 那邊要玩家再貼一次（金鑰只貼進酒館，不貼給你）。
+6. 請玩家回報資料夾裡有幾張卡、幾本世界書、幾個預設，等一下對數量用。`);
+  if (rwNew) L.push(`
+## ${P()}：Railway 開一個專案
+1. 建一個乾淨的資料夾專門放這個專案（例如 \`~/tavern\`），\`cd\` 進去。之後所有 railway 指令都在這個資料夾跑（雷 5）。
+2. \`railway login\`【玩家出手】：會開瀏覽器，請玩家用 GitHub 或 Email 登入 Railway、按允許。Railway 的 Hobby 方案每月 5 美金起、要綁卡，卡號請玩家自己在 Railway 網頁上填，你不經手。
+3. \`railway init\`，專案名叫 tavern（名字玩家可以改）。
+4. 每做一步前 \`railway status\` 確認連的是這個專案、這個服務。
+
+## ${P()}：把空的 SillyTavern 架上去
+1. 用官方映像直接開服務，不用自己建置：
+   \`railway add --service tavern --image ghcr.io/sillytavern/sillytavern:latest\`
+   （旗標先 \`railway add --help\` 對一次。）
+2. 先掛磁碟再讓它跑起來（雷 6）：\`railway volume add --mount-path /home/node/app/data\`。磁碟一定要在這個路徑。
+3. 設變數（\`railway variable set\` 一個一個設，或請玩家在 Railway 網頁的 Variables 頁貼）：
+   - \`SILLYTAVERN_LISTEN=true\`
+   - \`SILLYTAVERN_WHITELISTMODE=false\`
+   - \`SILLYTAVERN_BASICAUTHMODE=true\`
+   - \`SILLYTAVERN_BASICAUTHUSER_USERNAME=\`（玩家想一個）
+   - \`SILLYTAVERN_BASICAUTHUSER_PASSWORD=\`（玩家想一個，要夠長）
+   - \`PORT=8000\`
+   帳號密碼這兩個【玩家出手】：請玩家自己到 Railway 網頁 → 這個服務 → Variables 填，不要在對話裡講出來（雷 12）。如果部署紀錄顯示基本驗證沒生效，改試 SILLYTAVERN_BASICAUTHUSER__USERNAME（兩個底線）那種寫法，二選一以紀錄為準。
+4. \`railway domain\` 產生網址；問到埠號就填 8000。
+5. 等部署跑完，\`railway logs\` 看最後幾行有沒有「listening」之類的字；有「security」「refuse」就是變數沒設對（雷 11）。
+6. 驗收【玩家出手】：請玩家在瀏覽器打開那個網址，用剛才的帳號密碼登入，看到空的酒館畫面才算（雷 13）。設定頁右下角的版本號抄給你，要不比 Zeabur 那邊舊（雷 10）。`);
+  else L.push(`
+## ${P()}：對一下 Railway 上那個空酒館
+1. 找到當初架它的資料夾（裡面有 Railway 的連結），\`cd\` 進去，\`railway status\` 確認連的是 tavern 這個服務（雷 5）。找不到就 \`railway link\` 重新連到那個專案與服務。
+2. \`railway volume list\`（旗標先 --help 對一次）確認有磁碟掛在 /home/node/app/data（雷 6）。沒有就 \`railway volume add --mount-path /home/node/app/data\` 掛上，然後重新部署。
+3. 【玩家出手】請玩家開 Railway 的酒館，設定頁右下角版本號抄給你，要不比 Zeabur 那邊舊（雷 10）。比較舊就在 Railway 網頁按 Redeploy 拉最新映像。`);
+  if (all) L.push(`
+## ${P()}：把備份放回 Railway 的酒館
+目標：${BK} 解開之後長成 /home/node/app/data/default-user/…（雷 7）。
+1. 先把檔案送進容器。A 路線（全在瀏覽器裡）【玩家出手】：請玩家開 Railway 的酒館 → 輸入框左邊的魔法棒 →「資料庫」（Data Bank）→ 上傳檔案，選 ${BK}，等它傳完。它會落在 /home/node/app/data/default-user/user/files/${BK}。
+   A 傳不上去（檔案太大、一直轉圈）就走 B：【玩家出手】請玩家把 ${BK} 放到雲端硬碟（Dropbox、Google Drive 都可以），開一個「任何有連結的人可下載」的連結給你；Google Drive 的連結要換成直接下載的形式，Dropbox 把網址最後的 dl=0 改成 dl=1。
+2. 進容器：\`railway ssh --help\` 先看一眼，然後 \`railway ssh\`（連的要是 tavern 這個服務）。進去之後 \`ls /home/node/app/data/default-user\` 應該看得到空酒館的那幾個資料夾。
+3. B 路線在容器裡抓檔：\`cd /tmp && wget -O ${BK} "那個連結"\`（映像是 Alpine，wget 是 busybox 的；沒有就用 \`node -e\` 寫個 fetch 存檔）。抓完 \`ls -la\` 對大小。A 路線的檔案在 /home/node/app/data/default-user/user/files/${BK}，先 \`mv\` 到 /tmp。
+4. 看包裡的路徑：\`tar tzf /tmp/${BK} | head\`，第一層應該是 default-user/。不是的話，下一步的 -C 跟 --strip-components 要對應調整（雷 7）。
+5. 先把空酒館自己生的 default-user 收起來再解：\`cd /home/node/app/data && mv default-user default-user.empty && tar xzf /tmp/${BK} -C /home/node/app/data\`。解完 \`ls default-user\` 要看到 characters、chats、OpenAI Settings、worlds、extensions 這些。
+6. 權限（雷 8）：\`chown -R node:node /home/node/app/data\`（ssh 進來不是 root 的話這行會失敗，先跳過，之後存不了東西再回來處理）。
+7. 清掉備份：\`rm /tmp/${BK}\`，確定 user/files 裡也沒有留一份（雷 2）。\`exit\` 離開容器。
+8. 重啟讓酒館重讀：Railway 網頁上這個服務按 Restart（或 \`railway redeploy\`，旗標先 --help）。看 \`railway logs\` 有「listening」，有「migration」字樣是正常的，代表它把舊格式升級了（雷 10）。`);
+  else L.push(`
+## ${P()}：在 Railway 的酒館裡把東西匯進去
+全程在瀏覽器裡做，你用文字帶他【玩家出手】：
+1. 角色：角色清單 → 匯入角色 → 一次可以選多個 PNG。匯完數一下張數要跟 Zeabur 那邊一樣。
+2. 預設檔：API 連線頁 → 預設檔旁的匯入 → 選 JSON。
+3. 世界書：世界書面板 → 匯入 → 一本一本來。
+4. 設定備份有的話：使用者設定頁最下面「還原」。
+5. 連線：API 連線 → Chat Completion → Google Vertex AI → 快速模式，金鑰請玩家自己貼（不貼給你），區域 us-central1 或 global，模型沒在清單就在下面那格手打 ID。
+6. 擴充：酒館 →「擴充功能」→「安裝擴充功能」→ 貼網址 → 安裝，照 Zeabur 那邊裝過的清單一個一個裝。玩家不記得裝過哪些就請他在 Zeabur 的酒館開「管理擴充功能」截圖給你。`);
+  L.push(`
+## ${P()}：驗收，然後才動 Zeabur
+1. 【玩家出手】請玩家開 Railway 的酒館網址、登入。要親眼看到：角色都在、點開一張卡以前的對話都在、預設檔的清單一樣、世界書一樣、擴充功能都在且開著、API 連線頁的金鑰欄顯示已存（整包搬的話金鑰跟著 secrets.json 過來了，不用重貼）。
+2. 傳一句話給任何角色。沒回就先看是不是串流（雷 14），再看 \`railway logs\`。
+3. 新開一段對話、存一個設定，重新整理頁面還在，代表磁碟跟權限都對。存不了就回去做 chown（雷 8）。
+4. 這時候 Zeabur 的服務還在跑、還在計費。請玩家先在 Zeabur 把那個服務「暫停」（不刪），用 Railway 的酒館玩幾天。
+5. 幾天後確定不回頭了【玩家出手】：Zeabur 刪服務、刪硬碟（雷 4：刪了就回不來）。要保險的話，刪之前再用第二階段的方法打包一份存在自己電腦。
+6. Zeabur 的酒館網址作廢；如果有別的地方（手機書籤、小手機擴充的設定）寫著舊網址，改成 Railway 的。
+
+## 完成的樣子
+- Railway 上一個 tavern 服務，磁碟掛在 /home/node/app/data，網址打得開、要帳號密碼，裡面是玩家原本的酒館。
+- 備份檔只剩玩家自己電腦上那一份；容器、Data Bank、雲端分享連結裡都沒有。
+- Zeabur 那邊先暫停、幾天後才刪。
+- 你最後回報一次：搬了什麼（角色幾張、對話幾段大概）、哪一步是玩家自己做的、還有什麼要注意（Zeabur 什麼時候可以刪、Railway 的帳單）。`);
+  return L.join('\n');
+}
+
+$('#gen').addEventListener('click', () => {
+  const text = build();
+  $('#out').value = text; $('#out').hidden = false; $('#out-h').hidden = false; $('#copy').hidden = false;
+  $('#status').textContent = `${text.length} 字，全選複製貼給 AI 就好`;
+  $('#out').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+$('#copy').addEventListener('click', async () => {
+  const ta = $('#out');
+  try { await navigator.clipboard.writeText(ta.value); $('#status').textContent = '複製好了'; }
+  catch { ta.focus(); ta.select(); $('#status').textContent = '自動複製不行，已經全選，按 Ctrl/⌘+C'; }
+});
+for (const el of document.querySelectorAll('#panel input')) el.addEventListener('change', () => { if (!$('#out').hidden) $('#gen').click(); });
+})();
+</script>
+</body>
+</html>
