@@ -59,6 +59,16 @@ small.foot { display: block; color: var(--mute); margin-top: 36px; font-size: 13
 <body>
 <div class="wrap">
   <h1>酒館搬家說明書</h1>
+  <div class="mine" id="railway-notice" style="margin:0 0 24px">
+    <b>Railway 平台公告（2026-10-21）</b>
+    Railway 存環境變數的系統被入侵，部分變數可能被解密，目前全平台暫停部署、調查中，進度看 <a href="https://status.railway.com">status.railway.com</a>。<br>
+    照這份說明書架的酒館，受影響的只有<b style="display:inline;font-size:inherit">酒館的登入帳號密碼</b>（Railway 變數裡的 <code>SILLYTAVERN_BASICAUTHUSER_USERNAME</code>、<code>SILLYTAVERN_BASICAUTHUSER_PASSWORD</code>）。Google 金鑰存在酒館自己的硬碟裡，不在這次範圍。<br>
+    要做的事：<br>
+    ・酒館在跑的不用動，不會倒。<br>
+    ・等 Railway 恢復部署（狀態頁會公告），到 Railway → 酒館服務 → Variables，把密碼換一組新的，存檔會自動重新部署。那組密碼如果跟別的地方共用，別的地方也要換。<br>
+    ・留意 Railway 寄來的信，受影響的帳號他們會直接通知。<br>
+    ・想更保險的，Google 金鑰也可以換：Google 那邊開新的一把、貼進酒館 API 連線頁、舊的刪掉。這個不用等 Railway，現在就能做。
+  </div>
   <p class="lede">給玩家的 AI 看的：你的 SillyTavern 已經在 Zeabur 上跑，想整個搬到 Railway。選好電腦跟 AI，按一下，把生出來的整段指令貼給你的 Claude Code 或 Codex，它會把角色、對話、預設、擴充、金鑰原封不動搬過去。你只在登入、按同意、下載上傳那幾步出手。還沒架過酒館的人請走<a href="https://lubiyu0307-prog.github.io/rp-book/tavern-cloud.html">《酒館上雲說明書》</a>。</p>
 
   <div class="panel" id="panel">
