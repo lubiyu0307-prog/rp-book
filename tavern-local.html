@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#1f6f5a">
-<meta name="description" content="給玩家的 AI 看的：把 SillyTavern 裝在自己的 Mac 或 Windows 電腦上跑。選好電腦跟 AI，生出一整段指令，讓 Claude Code 或 Codex 把工具裝好、酒館抓下來、第一次開起來，之後怎麼開關更新備份也一起交代。">
+<meta name="description" content="（可選：手機也要連，走 Tailscale）給玩家的 AI 看的：把 SillyTavern 裝在自己的 Mac 或 Windows 電腦上跑。選好電腦跟 AI，生出一整段指令，讓 Claude Code 或 Codex 把工具裝好、酒館抓下來、第一次開起來，之後怎麼開關更新備份也一起交代。">
 <title>酒館裝在自己電腦說明書</title>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -74,6 +74,10 @@ small.foot { display: block; color: var(--mute); margin-top: 36px; font-size: 13
       <label><input type="radio" name="sc" value="yes" id="sc-yes" checked>做一個，點兩下就開酒館（推薦）</label>
       <label><input type="radio" name="sc" value="no" id="sc-no">不用，我自己打指令</label>
     </div></div>
+    <div class="row"><span>手機也要連</span><div class="seg">
+      <label><input type="radio" name="ph" value="no" id="ph-no" checked>不用，只在這台電腦玩</label>
+      <label><input type="radio" name="ph" value="yes" id="ph-yes">要，走 Tailscale（電腦要開著）</label>
+    </div></div>
     <div class="row"><span>擴充</span><div class="seg">
       <label><input type="checkbox" id="do-ext" checked>裝推薦的擴充＋Gemini 4 Argon 腳本</label>
     </div></div>
@@ -89,7 +93,7 @@ small.foot { display: block; color: var(--mute); margin-top: 36px; font-size: 13
 
   <h2>本機酒館的原理</h2>
   <p>SillyTavern 是一個用 Node.js 寫的小伺服器。裝在自己電腦上就是三件事：裝 Node.js 跟 git、把酒館的程式抓下來、執行啟動腳本。啟動之後它會在這台電腦開一個網址 <code>http://127.0.0.1:8000</code>，瀏覽器打開那個網址就是酒館。所有資料（角色、對話、預設、世界書、擴充、金鑰）都在酒館資料夾裡的 <code>data/</code>，備份就是把整個資料夾複製一份。</p>
-  <p>跟雲端版最大的差別：<b>那個黑黑的視窗開著酒館才在</b>。關掉視窗、關機、睡著，酒館就停了，下次要玩再點一次。手機不能直接連（預設只有這台電腦打得開），要隨時隨地用就得上雲。</p>
+  <p>跟雲端版最大的差別：<b>那個黑黑的視窗開著酒館才在</b>。關掉視窗、關機、睡著，酒館就停了，下次要玩再點一次。手機不能直接連（預設只有這台電腦打得開），要隨時隨地用就得上雲，或者在下面選「手機也要連」：走 Tailscale 把自己的手機跟電腦接在同一條私人網路上，出門也連得到，條件是電腦開著、不睡。</p>
 
   <h2>玩家要做的事</h2>
   <div class="hand" id="hand"></div>
@@ -102,7 +106,7 @@ small.foot { display: block; color: var(--mute); margin-top: 36px; font-size: 13
   <p>這些全部寫進了上面的指令，AI 會照著避。你看一遍，知道哪裡會出事。</p>
   <div class="mines" id="mines"></div>
 
-  <small class="foot">露比 × 格，2026-10-22。資料來源：SillyTavern 官方安裝文件（Windows、Linux/MacOS、Installation 總覽，2026 年 10 月版）、release 分支的 package.json（1.19.0，Node 要 20 以上）、start.sh 與 Start.bat 的內容、default/config.yaml 的預設值，加上我們自己從 2026 年 8 月到 10 月的日誌。《酒館上雲說明書》在 <a href="https://lubiyu0307-prog.github.io/rp-book/tavern-cloud.html">這裡</a>，從 Zeabur 搬到 Railway 在 <a href="https://lubiyu0307-prog.github.io/rp-book/tavern-migrate.html">這裡</a>。</small>
+  <small class="foot">露比 × 格，2026-10-22，2026-11-05 加「手機也要連」。資料來源：SillyTavern 官方安裝文件（Windows、Linux/MacOS、Installation 總覽，2026 年 10 月版）、release 分支的 package.json（1.19.0，Node 要 20 以上）、start.sh 與 Start.bat 的內容、default/config.yaml 的預設值，Tailscale 官方文件（tailscale serve、CLI 位置，2026 年 11 月版）、SillyTavern 官方「Remote connections」頁（白名單吃 CIDR；至少一種保護不然不啟動），加上我們自己從 2026 年 8 月到 11 月的日誌。《酒館上雲說明書》在 <a href="https://lubiyu0307-prog.github.io/rp-book/tavern-cloud.html">這裡</a>，從 Zeabur 搬到 Railway 在 <a href="https://lubiyu0307-prog.github.io/rp-book/tavern-migrate.html">這裡</a>。</small>
 </div>
 
 <script>
@@ -124,6 +128,9 @@ const MINES = [
   ['Mac 的 ./start.sh 說 permission denied', '改用 bash start.sh，官方文件兩種寫法都給了。不需要 sudo，整個安裝過程都不該用 sudo。'],
   ['擴充的資料夾不要多包一層', '酒館讀 data/default-user/extensions/ 底下每一個資料夾、自己加 third-party/ 前綴。我們曾經把一整批擴充 clone 進 extensions/third-party/ 裡，變成兩層，一個都沒被讀到。用終端機裝的話，資料夾直接放在 extensions/ 底下。'],
   ['金鑰只貼進酒館', 'Google、OpenAI 的金鑰是玩家自己在酒館的 API 連線頁貼的，不貼給 AI、不寫進任何檔案、不出現在對話裡。AI 需要知道的只有「貼好了」。'],
+  ['手機要連，不要靠把 listen 打開', '走 Tailscale 的 serve 是 Tailscale 自己在這台電腦裡把流量轉到 127.0.0.1:8000，酒館看到的還是本機，listen 保持 false、不用改白名單、不用設密碼，只有登入同一個 Tailscale 帳號的裝置看得到。serve 真的用不了才退回第二條路：listen 改 true、白名單加 100.64.0.0/10、basicAuthMode 開，官方文件說三種保護至少要有一種，不然伺服器不啟動。'],
+  ['tailscale serve 說 HTTPS 沒開', '要先在 Tailscale 管理頁（login.tailscale.com/admin/dns）把 MagicDNS 打開、HTTPS Certificates 按 Enable HTTPS。沒開的話 serve 會拒絕，不是指令打錯。Mac App Store 版的 CLI 藏在 /Applications/Tailscale.app/Contents/MacOS/Tailscale，要用全路徑或自己設 alias。'],
+  ['電腦睡著手機就連不上', '這不是 Tailscale 壞掉，是酒館跟電腦一起睡了。Mac 在系統設定的電池那頁把接電源時的自動睡眠關掉（或在終端機跑 caffeinate -s 讓它接電時不睡），蓋上螢幕還是會睡，要開著螢幕或外接螢幕；Windows 在設定 → 系統 → 電源，接電時的睡眠改成永不。黑視窗也要開著酒館才在。'],
 ];
 const EXT = [
   ['JS-Slash-Runner（酒館助手）', 'https://github.com/N0VI028/JS-Slash-Runner', '跟腳本、狀態欄都靠它，先裝'],
@@ -173,6 +180,7 @@ const HAND = [
   '驗收：隨便匯入或新建一張角色卡，傳一句話，有回就是裝好了。',
   '擴充：AI 在終端機裝好之後，你重新整理酒館，到「擴充功能」→「管理擴充功能」把十一個都打勾啟用。Argon 那支腳本要你自己貼進酒館助手的腳本庫（AI 會把內容印給你）。',
   '以後要玩：點桌面捷徑（有做的話）或再點一次 Start.bat／start.sh；要關就把黑視窗關掉。更新在資料夾裡 git pull。備份就是把整個資料夾複製一份到外接硬碟或雲端硬碟。',
+  '手機也要連（有選的話）：電腦跟手機各裝 Tailscale、同一個帳號登入；AI 會在電腦上跑一行 serve，給你一個 https 網址，手機開 Tailscale、用瀏覽器打開那個網址就是酒館，可以「加入主畫面」當 app。出門前電腦不能關、不能睡、黑視窗要開著。',
 ];
 const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 $('#mines').innerHTML = MINES.map(([t, d]) => `<div class="mine"><b>${esc(t)}</b><span>${esc(d)}</span></div>`).join('');
@@ -184,6 +192,8 @@ function build() {
   const ai = $('#ai-codex').checked ? 'codex' : 'claude';
   const sc = $('#sc-yes').checked;
   const doExt = $('#do-ext').checked;
+  const phone = $('#ph-yes').checked;
+  const TS = os === 'win' ? 'tailscale' : '/Applications/Tailscale.app/Contents/MacOS/Tailscale';
   const AI = ai === 'codex' ? 'Codex' : 'Claude Code';
   const OS = os === 'win' ? 'Windows' : 'Mac';
   const sh = os === 'win' ? 'PowerShell' : '終端機';
@@ -238,6 +248,17 @@ ${os === 'win'
 1. 酒館左上角第二個圖示是「API 連線」。請玩家選自己用的服務（Chat Completion 底下有 OpenAI、Claude、Google AI Studio、Google Vertex AI 快速模式等），金鑰自己貼（雷 14：不貼給你）。按「連線」，右邊出現綠燈、模型清單有東西就是通了。
 2. 請玩家新建或匯入一張角色卡，傳一句話。有回就是整個裝好了。
 3. 請玩家重新整理頁面，剛才的對話還在，代表資料有寫進 data/。`);
+  if (phone) L.push(`
+## ${P()}：讓手機也連得上（Tailscale）
+原理：Tailscale 把玩家的電腦跟手機接在同一條私人網路上，再用它的 serve 功能把這台電腦的 127.0.0.1:8000 用 https 端出去。酒館本身一個設定都不用改（雷 16）。
+1. 【玩家出手】裝 Tailscale：${os === 'win' ? '電腦到 tailscale.com/download 下載 Windows 版安裝、開起來' : '電腦在 Mac App Store 搜 Tailscale 裝好、開起來（選單列會多一個圖示）'}，用 Google、Apple、GitHub 或 Microsoft 任一帳號登入；手機到 App Store／Play 商店裝 Tailscale，**用同一個帳號**登入、把連線打開。
+2. 你這邊驗證：\`${TS} status\`，要看到電腦跟手機兩台都在清單裡（雷 17：Mac App Store 版要用這個全路徑${os === 'win' ? '' : '；印不出來就請玩家開 Tailscale 的設定看有沒有 CLI integration 可以裝'}）。
+3. 【玩家出手】開 HTTPS：請玩家用瀏覽器開 https://login.tailscale.com/admin/dns，MagicDNS 要是開的，往下找 HTTPS Certificates 按 Enable HTTPS。沒做這步下一行會被拒絕（雷 17）。
+4. 端出去：\`${TS} serve --bg 8000\`。它會印一個網址，長得像 https://電腦名稱.某某.ts.net/。\`${TS} serve status\` 要看到 8000 那條。這個設定會記住，電腦重開還在。
+5. 【玩家出手】驗收：請玩家手機關掉 Wi-Fi 用行動網路、Tailscale 開著，用瀏覽器打開那個網址，要看到酒館、角色都在、能傳一句話。可以的話「加入主畫面」，以後像 app 一樣點開。
+6. 【玩家出手】電腦不能睡（雷 18）：${os === 'win' ? '設定 → 系統 → 電源與電池 → 螢幕與睡眠，接電時的「讓裝置進入睡眠」改成永不。' : '系統設定 → 電池 → 選項，把接電源時防止自動睡眠的那個開關打開；或者你幫他開一個終端機跑 \`caffeinate -s\` 掛著。蓋上螢幕還是會睡，出門前螢幕要開著或接外接螢幕。'}黑視窗也要開著酒館才在。
+7. 跟玩家講清楚：只有登入他這個 Tailscale 帳號的裝置看得到這個網址，別人拿到網址也連不上；不要為了方便去改酒館的 listen（雷 16）。要收掉就 \`${TS} serve --https=443 localhost:8000 off\`。
+8. serve 一直不行（公司電腦被管、裝不了 App Store 版）才走備案：酒館資料夾的 config.yaml 把 listen 改 true、whitelistMode 保持 true、whitelist 加一行 100.64.0.0/10、basicAuthMode 改 true 並請玩家自己填一組帳號密碼進 basicAuthUser（雷 16、雷 15），重開酒館，手機開 http://電腦的 Tailscale IP:8000（\`${TS} ip -4\` 查）。`);
   if (doExt) L.push(`
 ## ${P()}：裝推薦的擴充＋ Gemini 4 Argon 腳本
 擴充就是酒館的外掛。這十一個是推薦裝的，照順序裝（第一個酒館助手最重要，後面的腳本要靠它）：
@@ -274,7 +295,7 @@ ${os === 'win'
 ## 完成的樣子
 - ${DIR} 裡是 release 分支的 SillyTavern，Node 20 以上，config.yaml 跟 data/ 都在。
 - 玩家自己開得起來、連得上、角色有回、重新整理對話還在。${doExt ? '\n- 十一個擴充都在管理擴充功能裡、開著；酒館助手裡有「Gemini 4 Argon 選項」這支腳本。' : ''}
-- ${sc ? '桌面有一個捷徑，點兩下就開。' : '玩家知道去哪裡點什麼開酒館。'}
+- ${sc ? '桌面有一個捷徑，點兩下就開。' : '玩家知道去哪裡點什麼開酒館。'}${phone ? '\n- 手機開 Tailscale、用瀏覽器打開那個 ts.net 網址就是酒館；酒館的 listen 還是 false；玩家知道電腦不能睡、黑視窗要開著。' : ''}
 - 你最後回報一次：裝在哪裡、Node 跟酒館的版本、哪幾步是玩家自己做的、以後怎麼開關更新備份。`);
   return L.join('\n');
 }
