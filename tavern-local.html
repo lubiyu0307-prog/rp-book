@@ -252,7 +252,7 @@ ${os === 'win'
 ## ${P()}：讓手機也連得上（Tailscale）
 原理：Tailscale 把玩家的電腦跟手機接在同一條私人網路上，再用它的 serve 功能把這台電腦的 127.0.0.1:8000 用 https 端出去。酒館本身一個設定都不用改（雷 16）。
 1. 【玩家出手】裝 Tailscale：${os === 'win' ? '電腦到 tailscale.com/download 下載 Windows 版安裝、開起來' : '電腦在 Mac App Store 搜 Tailscale 裝好、開起來（選單列會多一個圖示）'}，用 Google、Apple、GitHub 或 Microsoft 任一帳號登入；手機到 App Store／Play 商店裝 Tailscale，**用同一個帳號**登入、把連線打開。
-2. 你這邊驗證：\`${TS} status\`，要看到電腦跟手機兩台都在清單裡（雷 17：Mac App Store 版要用這個全路徑${os === 'win' ? '' : '；印不出來就請玩家開 Tailscale 的設定看有沒有 CLI integration 可以裝'}）。
+2. 你這邊驗證：\`${TS} status\`，要看到電腦跟手機兩台都在清單裡${os === 'win' ? '（找不到 tailscale 指令就關掉 PowerShell 重開一次，還是沒有就用完整路徑 "C:\\Program Files\\Tailscale\\tailscale.exe"）' : '（雷 17：Mac App Store 版要用這個全路徑；印不出來就請玩家開 Tailscale 的設定看有沒有 CLI integration 可以裝）'}。
 3. 【玩家出手】開 HTTPS：請玩家用瀏覽器開 https://login.tailscale.com/admin/dns，MagicDNS 要是開的，往下找 HTTPS Certificates 按 Enable HTTPS。沒做這步下一行會被拒絕（雷 17）。
 4. 端出去：\`${TS} serve --bg 8000\`。它會印一個網址，長得像 https://電腦名稱.某某.ts.net/。\`${TS} serve status\` 要看到 8000 那條。這個設定會記住，電腦重開還在。
 5. 【玩家出手】驗收：請玩家手機關掉 Wi-Fi 用行動網路、Tailscale 開著，用瀏覽器打開那個網址，要看到酒館、角色都在、能傳一句話。可以的話「加入主畫面」，以後像 app 一樣點開。
